@@ -22,6 +22,7 @@ function createMap(heightMin, heightMax, summitNb, sourceNb){
 	generateSources(sourceNb,heightMin);
 	console.log("Creation of the rivers");
 	generateRivers(heightMin,heightMax);
+	generateRivers(heightMin,heightMax);//second pass
 }
 
 function generateMap(heightMin, heightMax){
@@ -117,7 +118,7 @@ function changeSurroundingsRiver(y,x,val){
 			if (i>=0 && i<mapH){
 				if (j>=0 && j<mapL){
 					if (x!=j || y!=i){
-						if (map[i][j]<val && map[i][j]>0) {
+						if (map[i][j]<val && map[i][j]>=0) {
 							map[i][j]=-map[i][j];
 						}
 					}
