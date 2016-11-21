@@ -13,7 +13,7 @@ function getRandomNormal(min, max){
 
 function createMap(heightMin, heightMax, summitNb, sourceNb){
 	console.log("Map generation");
-	generateMap(heightMin,(heightMin+heightMax)/2);
+	generateMap(heightMin,Math.floor((heightMin+heightMax)/2));
 	console.log("Creation of the summits");
 	generateSummits(summitNb,heightMax);
 	console.log("Creation of the moutains");
