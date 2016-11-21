@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+    <title>Map Generator</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+
+<body>
+	<h1>Map Generator</h1>
+	<div class="form">
+		<form id="mapSettings">
+			<div>
+				<label for="heightMax">Height Max</label>
+				<input type="number" min="0" max="10" name="heightMax" value="10">
+			</div>
+			<div>
+				<label for="heightMin">Height Min</label>
+				<input type="number" min="0" max="10" name="heightMin" value="0">
+			</div>
+			<div>
+				<label for="summitNb">Number of summit</label>
+				<input type="number" min="0" max="10" name="summitNb" value="5">
+			</div>
+			<div>
+				<label for="sourceNb">Number of sources</label>
+				<input type="number" min="0" max="10" name="sourceNb" value="4">
+			</div>
+			<input type="submit" value="Generate">
+		</form>
+	</div>
+	<div id="legend">
+	Legend :
+		<span class="case height0"></span>
+		<span class="case height1"></span>
+		<span class="case height2"></span>
+		<span class="case height3"></span>
+		<span class="case height4"></span>
+		<span class="case height5"></span>
+		<span class="case height6"></span>
+		<span class="case height7"></span>
+		<span class="case height8"></span>
+		<span class="case height9"></span>
+		<span class="case height10"></span>
+	</div>
+
+	<div id="map"></div>
+
+	<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+	<script type="text/javascript" src="js/chance.min.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
+</body>
+</html>

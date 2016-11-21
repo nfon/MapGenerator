@@ -1,0 +1,65 @@
+.form{
+	background-color: lightgrey;
+  	border: 1px solid black;
+  	width: 300px;
+  	text-align: left;
+}
+
+.form div{
+	padding: 5px;
+}
+
+.form input[type=number]{
+	float:right;
+}
+
+#map{
+	/* border: 1px solid black; */
+}
+
+.line{
+	height: 5px;
+}
+
+.case{
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+}
+
+.blue{
+	background-color: #42C6FF!important;
+}
+.height0{
+	background-color: #42C6FF;	
+}
+.height1{
+	background-color: #62FF42;	
+}
+.height2{
+	background-color: #44D627;	
+}
+.height3{
+	background-color: #36B51D;	
+}
+.height4{
+	background-color: #31961D;	
+}
+.height5{
+	background-color: #267317;	
+}
+.height6{
+	background-color: #1D4F13;	
+}
+.height7{
+	background-color: #57382B;	
+}
+.height8{
+	background-color: #4A342A;	
+}
+.height9{
+	background-color: #30221C;	
+}
+.height10{
+	background-color: #000000;	
+}
