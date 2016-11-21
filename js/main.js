@@ -85,7 +85,6 @@ function generateSources(sourceNb,heightMin){
 		var x = getRandom(0,mapL-1);
 		var y = getRandom(0,mapH-1);
 		map[x][y]=-map[x][y];
-		console.log(x,y);
 	}
 }
 
