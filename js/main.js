@@ -31,7 +31,7 @@ function createMap(heightMin, heightMax, summitNb, lakeNb, riverNb) {
 	displayMessage("Creation of the moutains");
 	generateMountains(heightMin,heightMax);
 	displayMessage("Creation of the sources");
-	generateLakesSource(lakeNb,heightMin);
+	generateLakesSource(lakeNb,heightMin,heightMax);
 	displayMessage("Creation of the lakes");
 	generateLakes(heightMin,heightMax);
 	displayMessage("Creation of the rivers");
@@ -42,7 +42,7 @@ function generateMap(heightMin, heightMax) {
 	for (var i=0;i<mapH;i++) {
 		map[i] = new Array();
 		for (var j=0;j<mapL;j++) {
-			map[i][j]=getRandomNormal(heightMin,heightMax);
+			map[i][j]={type:1,altitude:getRandomNormal(heightMin,heightMax)};
 		}
 	}
 }
@@ -51,7 +51,7 @@ function generateSummits(summitNb,heightMax) {
 	for (var i=0;i<summitNb;i++) {
 		var x = getRandom(0,mapH-1);
 		var y = getRandom(0,mapL-1);
-		map[x][y]=heightMax;
+		map[x][y].altitude=heightMax;
 		changeSurroundings(x,y,heightMax);
 	}
 }
@@ -66,7 +66,7 @@ function generateRelief(val) {
 	displayMessage("Generate level "+val);
 	for (var i=0;i<mapH;i++) {
 		for (var j=0;j<mapL;j++) {
-			if (map[i][j]==val) {
+			if (map[i][j].altitude==val) {
 				changeSurroundings(i,j,val-1);
 			}
 		}
@@ -84,8 +84,8 @@ function changeSurroundings(y,x,val) {
 			if (i>=0 && i<mapH) {
 				if (j>=0 && j<mapL) {
 					if (x!=j || y!=i) {
-						if (map[i][j]<val) {
-							map[i][j]=getRandomNormal(val+1,val-1);
+						if (map[i][j].altitude<val) {
+							map[i][j].altitude=getRandomNormal(val+1,val-1);
 						}
 					}
 				}
@@ -94,26 +94,29 @@ function changeSurroundings(y,x,val) {
 	}
 }
 
-function generateLakesSource(lakeNb,heightMin) {
+function generateLakesSource(lakeNb,heightMin,heightMax) {
 	for (var i=0;i<lakeNb;i++) {
 		var x = getRandom(0,mapH-1);
 		var y = getRandom(0,mapL-1);
-		map[x][y]=-map[x][y];
+		if (map[x][y].altitude>=heightMax-1)
+			i--;
+		else
+			map[x][y].type=0;
 	}
 }
 
 function generateLakes(heightMin,heightMax) {
-	for (var i=-heightMax; i<-(heightMin+1); i++) {
+	for (var i=heightMax; i>heightMin+1; i--) {
 		generateLake(i);
 	}
 }
 
 function generateLake(val) {
 	displayMessage("Generate River level "+val);
-	for (var i=0;i<mapH;i++){
-		for (var j=0;j<mapL;j++){
-			if (map[i][j]==val){
-				changeSurroundingsLake(i,j,Math.abs(val-1));
+	for (var i=0;i<mapH;i++) {
+		for (var j=0;j<mapL;j++) {
+			if (map[i][j].type==0 && map[i][j].altitude==val) {
+				changeSurroundingsLake(i,j,val);
 			}
 		}
 	}
@@ -124,14 +127,13 @@ function changeSurroundingsLake(y,x,val) {
 	var riverSizeXMax=getRandomNormal(0,3);
 	var riverSizeYMin=getRandomNormal(0,4);
 	var riverSizeYMax=getRandomNormal(0,3);
-
 	for (var j=(x-riverSizeXMin);j<=(x+riverSizeXMax);j++) {
 		for (var i=(y-riverSizeYMin);i<=(y+riverSizeYMax);i++) {
 			if (i>=0 && i<mapH) {
 				if (j>=0 && j<mapL) {
 					if (x!=j || y!=i) {
-						if (map[i][j]<val && map[i][j]>=0) {
-							map[i][j]=-map[i][j];
+						if (map[i][j].altitude<=val) {
+							map[i][j].type=0;
 						}
 					}
 				}
@@ -168,7 +170,7 @@ function generateRivers(riverNb,heightMin) {
 			var x = getRandom(0,mapH-1);
 		}
 
-		map[x][y]=-map[x][y];
+		map[x][y].type=0;
 		drawRiver(x,y,orientation);
 	}
 }
@@ -179,7 +181,7 @@ function generateRivers(riverNb,heightMin) {
 5 6 7
 */
 function drawRiver(x,y,orientation) {
-	var curHeight = -map[x][y];
+	var curHeight = map[x][y].altitude;
 	var inside=true;
 	var i=prevI=x;
 	var j=prevJ=y;
@@ -187,7 +189,7 @@ function drawRiver(x,y,orientation) {
 	var direction = 0;
 	var safety=0;
 	while (inside) {
-		if (length>(mapH*mapL)/3)
+		if (length>(mapH*mapL)/4)
 			var direction = getRandom(0,8);
 		else
 		{
@@ -215,15 +217,14 @@ function drawRiver(x,y,orientation) {
 		
 
 		if ( ( /*map[i][j]<0 ||*/ i==0 || i==mapH-1 || j==0 || j==mapL-1 ) && length > 5 )
-		{
 			inside=false;
-		}
-		if( map[i][j] > 0 ) {
+		
+		if( map[i][j].type != 0 ) {
 			length++;
-			if (map[i][j]<=curHeight) {
+			if (map[i][j].altitude<=curHeight) {
 				safety=0;
-				curHeight = map[i][j]
-				map[i][j] = -map[i][j];
+				curHeight = map[i][j].altitude;
+				map[i][j].type = 0;
 				prevI=i;
 				prevJ=j;
 			}
@@ -246,7 +247,7 @@ function loadMap() {
 	for (var i=0;i<mapH;i++) {
 		str+="<div class='line'>";
 		for (var j=0;j<mapL;j++) {
-			str+="<span class='case height"+Math.abs(map[i][j])+(map[i][j]<0?' blue':'')+"'></span>";
+			str+="<span class='case height"+map[i][j].altitude+(map[i][j].type==0?' blue':'')+"'></span>";
 		}
 		str+="</div>";
 	}
