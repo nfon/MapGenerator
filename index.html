@@ -11,6 +11,14 @@
 	<div class="form">
 		<form id="mapSettings">
 			<div>
+				<label for="mapHeight">Map Height</label>
+				<input type="number" min="10" max="10000" name="mapHeight" value="100">
+			</div>
+			<div>
+				<label for="mapWidth">Map Width</label>
+				<input type="number" min="10" max="10000" name="mapWidth" value="100">
+			</div>
+			<div>
 				<label for="heightMax">Height Max</label>
 				<input type="number" min="0" max="10" name="heightMax" value="10">
 			</div>
@@ -19,12 +27,20 @@
 				<input type="number" min="0" max="10" name="heightMin" value="0">
 			</div>
 			<div>
-				<label for="summitNb">Number of summit</label>
+				<label for="summitNb">Number of summits</label>
 				<input type="number" min="0" max="20" name="summitNb" value="5">
 			</div>
 			<div>
-				<label for="sourceNb">Number of sources</label>
-				<input type="number" min="0" max="20" name="sourceNb" value="3">
+				<label for="riverNb">Number of rivers</label>
+				<input type="number" min="0" max="20" name="riverNb" value="2">
+			</div>
+			<div>
+				<label for="lakeNb">Number of lakes</label>
+				<input type="number" min="0" max="20" name="lakeNb" value="1">
+			</div>
+			<div>
+				<label for="debugMode">Debug Mode</label>
+				<input type="checkbox" name="debugMode">
 			</div>
 			<input type="submit" value="Generate">
 		</form>
@@ -43,6 +59,7 @@
 		<span class="case height9"></span>
 		<span class="case height10"></span>
 	</div>
+	<div id="messages"></div>
 
 	<div id="map"></div>
 
