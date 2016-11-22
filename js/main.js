@@ -1,5 +1,11 @@
 var mapL = 100;
 var mapH = 100;
+var heightMin = 0;
+var heightMax = 10;
+
+var summitNb = 5;
+var lakeNb = 1;
+var riverNb = 2;
 var playerX = 0;
 var playerY = 0;
 var map = new Array();
@@ -24,32 +30,32 @@ function getRandomNormal(min, max) {
 	return Math.min(max,Math.max(min,Math.floor(chance.normal({mean: ((min+max)/2), dev: ((min+max)/4)}))));
 }
 
-function createMap(heightMin, heightMax, summitNb, lakeNb, riverNb) {
+function createMap() {
 	clearMessage();
 	displayMessage("Map generation");
-	generateMap(heightMin,Math.floor((heightMin+heightMax)/2));
+	generateMap();
 	displayMessage("Creation of the summits");
-	generateSummits(summitNb,heightMax);
+	generateSummits();
 	displayMessage("Creation of the moutains");
-	generateMountains(heightMin,heightMax);
+	generateMountains();
 	displayMessage("Creation of the sources");
-	generateLakesSource(lakeNb,heightMin,heightMax);
+	generateLakesSource();
 	displayMessage("Creation of the lakes");
-	generateLakes(heightMin,heightMax);
+	generateLakes();
 	displayMessage("Creation of the rivers");
-	generateRivers(riverNb,heightMin);
+	generateRivers();
 }
 
-function generateMap(heightMin, heightMax) {
+function generateMap() {
 	for (var i=0;i<mapH;i++) {
 		map[i] = new Array();
 		for (var j=0;j<mapL;j++) {
-			map[i][j]={type:1,altitude:getRandomNormal(heightMin,heightMax)};
+			map[i][j]={type:1,altitude:getRandomNormal(heightMin,Math.floor((heightMin+heightMax)/2))};
 		}
 	}
 }
 
-function generateSummits(summitNb,heightMax) {
+function generateSummits() {
 	for (var i=0;i<summitNb;i++) {
 		var x = getRandom(0,mapH-1);
 		var y = getRandom(0,mapL-1);
@@ -58,7 +64,7 @@ function generateSummits(summitNb,heightMax) {
 	}
 }
 
-function generateMountains(heightMin,heightMax) {
+function generateMountains() {
 	for (var i=heightMax; i>heightMin+1; i--) {
 		generateRelief(i);
 	}
@@ -96,7 +102,7 @@ function changeSurroundings(y,x,val) {
 	}
 }
 
-function generateLakesSource(lakeNb,heightMin,heightMax) {
+function generateLakesSource() {
 	for (var i=0;i<lakeNb;i++) {
 		var x = getRandom(0,mapH-1);
 		var y = getRandom(0,mapL-1);
@@ -107,7 +113,7 @@ function generateLakesSource(lakeNb,heightMin,heightMax) {
 	}
 }
 
-function generateLakes(heightMin,heightMax) {
+function generateLakes() {
 	for (var i=heightMax; i>heightMin+1; i--) {
 		generateLake(i);
 	}
@@ -144,7 +150,7 @@ function changeSurroundingsLake(y,x,val) {
 	}
 }
 
-function generateRivers(riverNb,heightMin) {
+function generateRivers() {
 	for (var i=0;i<riverNb;i++) {
 		var side = getRandom(0,1);
 		var orientation;
@@ -253,10 +259,29 @@ function movePlayer(direction){
 		case 3 : playerX++; break;
 	}
 
-	playerY = Math.min(mapH-1,Math.max(0,playerY));
-	playerY = Math.min(mapH-1,Math.max(0,playerY));
-
-	$("#"+playerX+"_"+playerY).addClass("player");
+	var reset = false;
+	if (playerY<0) {
+		playerY=mapH-1;
+		reset = true;
+	}
+	if (playerY>mapH-1) {
+		playerY=0;
+		reset = true;
+	}
+	if (playerX<0) {
+		playerX=mapL-1;
+		reset = true;
+	}
+	if (playerX>mapL-1) {
+		playerX=0;
+		reset = true;
+	}
+	if (reset) {
+		createMap();
+		loadMap();
+	}
+	else
+		$("#"+playerX+"_"+playerY).addClass("player");
 }
 
 function loadMap() {
@@ -277,8 +302,8 @@ $(document).ready(function() {
 		mapH = parseInt($("input[name=mapHeight]").val(),10);
 		mapL = parseInt($("input[name=mapWidth]").val(),10);
 
-		var heightMin = parseInt($("input[name=heightMin]").val(),10);
-		var heightMax = parseInt($("input[name=heightMax]").val(),10);
+		heightMin = parseInt($("input[name=heightMin]").val(),10);
+		heightMax = parseInt($("input[name=heightMax]").val(),10);
 
 		if (heightMin > heightMax) {
 			$("input[name=heightMin]").val(heightMax);
@@ -287,13 +312,13 @@ $(document).ready(function() {
 			heightMax = parseInt($("input[name=heightMax]").val(),10);
 		}
 
-		var summitNb = parseInt($("input[name=summitNb]").val(),10);
-		var lakeNb = parseInt($("input[name=lakeNb]").val(),10);
-		var riverNb = parseInt($("input[name=riverNb]").val(),10);
+		summitNb = parseInt($("input[name=summitNb]").val(),10);
+		lakeNb = parseInt($("input[name=lakeNb]").val(),10);
+		riverNb = parseInt($("input[name=riverNb]").val(),10);
 
 		debugMode = $("input[name=debugMode]").prop("checked");
 
-		createMap(heightMin, heightMax, summitNb, lakeNb, riverNb);
+		createMap();
 		loadMap();
 		return false;
 	});
