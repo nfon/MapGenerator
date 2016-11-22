@@ -187,7 +187,7 @@ function drawRiver(x,y,orientation) {
 	var direction = 0;
 	var safety=0;
 	while (inside) {
-		if (length>(mapH*mapL)/2)
+		if (length>(mapH*mapL)/3)
 			var direction = getRandom(0,8);
 		else
 		{
@@ -214,7 +214,7 @@ function drawRiver(x,y,orientation) {
 		j = Math.min(mapH-1,Math.max(0,j));
 		
 
-		if ( ( /*map[i][j]<0 ||*/ i==0 || i==mapH-1 || j==0 || j==mapL-1 ) )
+		if ( ( /*map[i][j]<0 ||*/ i==0 || i==mapH-1 || j==0 || j==mapL-1 ) && length > 5 )
 		{
 			inside=false;
 		}
