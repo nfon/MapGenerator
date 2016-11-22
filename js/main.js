@@ -1,5 +1,7 @@
 var mapL = 100;
 var mapH = 100;
+var playerX = 0;
+var playerY = 0;
 var map = new Array();
 var debugMode = false;
 
@@ -242,12 +244,27 @@ function drawRiver(x,y,orientation) {
 	}
 }
 
+function movePlayer(direction){
+	$("#"+playerX+"_"+playerY).removeClass("player");
+	switch(direction) {
+		case 0 : playerY--; break;
+		case 1 : playerX--; break;
+		case 2 : playerY++; break;
+		case 3 : playerX++; break;
+	}
+
+	playerY = Math.min(mapH-1,Math.max(0,playerY));
+	playerY = Math.min(mapH-1,Math.max(0,playerY));
+
+	$("#"+playerX+"_"+playerY).addClass("player");
+}
+
 function loadMap() {
 	var str = "";
 	for (var i=0;i<mapH;i++) {
 		str+="<div class='line'>";
 		for (var j=0;j<mapL;j++) {
-			str+="<span class='case height"+map[i][j].altitude+(map[i][j].type==0?' blue':'')+"'></span>";
+			str+="<span id='"+i+"_"+j+"' class='case height"+map[i][j].altitude+(map[i][j].type==0?' blue':'')+((i==playerX && j==playerY)?' player':'')+"'></span>";
 		}
 		str+="</div>";
 	}
@@ -280,4 +297,15 @@ $(document).ready(function() {
 		loadMap();
 		return false;
 	});
+
+	$(document).on("keyup",function(evt){
+		var direction = -1;
+		switch (evt.keyCode){
+			case 37 : direction = 0; break;
+			case 38 : direction = 1; break;
+			case 39 : direction = 2; break;
+			case 40 : direction = 3; break;
+		}
+		movePlayer(direction);
+	})
 });

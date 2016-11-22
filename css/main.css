@@ -27,9 +27,6 @@
 	height: 5px;
 }
 
-.blue{
-	background-color: #42C6FF!important;
-}
 .height0{
 	background-color: #42C6FF;	
 }
@@ -62,4 +59,10 @@
 }
 .height10{
 	background-color: white;	
+}
+.blue{
+	background-color: #42C6FF;
+}
+.player{
+	background-color: red;
 }
