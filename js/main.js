@@ -282,7 +282,12 @@ function movePlayer(direction){
 		loadMap();
 	}
 	else
-		$("#"+playerX+"_"+playerY).addClass("player");
+	{
+		if (canvasMode)
+			loadMapCanvas();
+		else
+			$("#"+playerX+"_"+playerY).addClass("player");
+	}
 }
 
 function loadMap() {
@@ -311,8 +316,8 @@ function loadMapCanvas() {
 	var ctx2 = c2.getContext("2d");
 
 	var c1 = document.createElement("canvas");
-	c1.width = mapL-1;
-	c1.height = mapH-1;
+	c1.width = mapL;
+	c1.height = mapH;
 	var ctx1 = c1.getContext("2d");
 
 	var imgData = ctx1.createImageData(mapL, mapH);
@@ -320,17 +325,25 @@ function loadMapCanvas() {
 	    var x = (i/4)%mapL;
 	    var y = Math.floor(i/4/mapL);
 
-	    if (map[x][y].type==1){
-			imgData.data[i] = r[map[x][y].altitude]; 
-	    	imgData.data[i+1] = g[map[x][y].altitude];
-	    	imgData.data[i+2] = b[map[x][y].altitude];
-	    	imgData.data[i+3] = 255; 
+	    if (playerX==y && playerY==x) {
+			imgData.data[i] = 255; 
+    		imgData.data[i+1] = 0;
+    		imgData.data[i+2] = 0;
+    		imgData.data[i+3] = 255; 
 	    }
 	    else {
-		    imgData.data[i] = 66; 
-	    	imgData.data[i+1] = 198;
-	    	imgData.data[i+2] = 255;
-	    	imgData.data[i+3] = 255; 
+	    	if (map[x][y].type==1) {
+				imgData.data[i] = r[map[x][y].altitude]; 
+	    		imgData.data[i+1] = g[map[x][y].altitude];
+	    		imgData.data[i+2] = b[map[x][y].altitude];
+	    		imgData.data[i+3] = 255; 
+	    	}
+	    	else {
+			    imgData.data[i] = 66; 
+	    		imgData.data[i+1] = 198;
+	    		imgData.data[i+2] = 255;
+	    		imgData.data[i+3] = 255; 
+	    	}
 	    }
 
 	}
