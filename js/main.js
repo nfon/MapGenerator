@@ -106,7 +106,7 @@ function generateLakesSource() {
 	for (var i=0;i<lakeNb;i++) {
 		var x = getRandom(0,mapH-1);
 		var y = getRandom(0,mapL-1);
-		if (map[x][y].altitude>=heightMax-1)
+		if (map[x][y].altitude>=heightMax-1 && heightMax!=heightMin+1)
 			i--;
 		else
 			map[x][y].type=0;
@@ -114,7 +114,7 @@ function generateLakesSource() {
 }
 
 function generateLakes() {
-	for (var i=heightMax; i>heightMin+1; i--) {
+	for (var i=heightMax; i>heightMin; i--) {
 		generateLake(i);
 	}
 }
