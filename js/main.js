@@ -9,6 +9,7 @@ var riverNb = 2;
 var playerX = 0;
 var playerY = 0;
 var map = new Array();
+var canvasMode = false;
 var debugMode = false;
 
 function clearMessage() {
@@ -285,17 +286,65 @@ function movePlayer(direction){
 }
 
 function loadMap() {
-	var str = "";
-	for (var i=0;i<mapH;i++) {
-		str+="<div class='line'>";
-		for (var j=0;j<mapL;j++) {
-			str+="<span id='"+i+"_"+j+"' class='case height"+map[i][j].altitude+(map[i][j].type==0?' blue':'')+((i==playerX && j==playerY)?' player':'')+"'></span>";
+	if (canvasMode)
+		loadMapCanvas();
+	else {
+		var str = "";
+		for (var i=0;i<mapH;i++) {
+			str+="<div class='line'>";
+			for (var j=0;j<mapL;j++) {
+				str+="<span id='"+i+"_"+j+"' class='case height"+map[i][j].altitude+(map[i][j].type==0?' blue':'')+((i==playerX && j==playerY)?' player':'')+"'></span>";
+			}
+			str+="</div>";
 		}
-		str+="</div>";
+		$("#map").html(str);
 	}
-	$("#map").html(str);
 }
 
+function loadMapCanvas() {
+	var r = [66,98,68,54,49,38,29,87,74,153,255];
+	var g = [198,255,214,181,150,115,79,56,52,153,255];
+	var b = [255,66,39,29,29,23,19,43,42,153,255];
+
+	$("#map").html("<canvas></canvas>");
+	var c2 = $("#map>canvas")[0];
+	var ctx2 = c2.getContext("2d");
+
+	var c1 = document.createElement("canvas");
+	c1.width = mapL-1;
+	c1.height = mapH-1;
+	var ctx1 = c1.getContext("2d");
+
+	var imgData = ctx1.createImageData(mapL, mapH);
+	for (var i=0; i<imgData.data.length; i+=4) {
+	    var x = (i/4)%mapL;
+	    var y = Math.floor(i/4/mapL);
+
+	    if (map[x][y].type==1){
+			imgData.data[i] = r[map[x][y].altitude]; 
+	    	imgData.data[i+1] = g[map[x][y].altitude];
+	    	imgData.data[i+2] = b[map[x][y].altitude];
+	    	imgData.data[i+3] = 255; 
+	    }
+	    else {
+		    imgData.data[i] = 66; 
+	    	imgData.data[i+1] = 198;
+	    	imgData.data[i+2] = 255;
+	    	imgData.data[i+3] = 255; 
+	    }
+
+	}
+	ctx1.putImageData(imgData, 0, 0);
+
+	c2.width = 400;
+	c2.height = 300;
+
+	ctx2.mozImageSmoothingEnabled = false;
+	ctx2.webkitImageSmoothingEnabled = false;
+	ctx2.msImageSmoothingEnabled = false;
+	ctx2.imageSmoothingEnabled = false;
+	ctx2.drawImage(c1, 0, 0, 400, 300);
+}
 
 $(document).ready(function() {
 	$("#mapSettings").on("submit",function(evt){
@@ -316,6 +365,7 @@ $(document).ready(function() {
 		lakeNb = parseInt($("input[name=lakeNb]").val(),10);
 		riverNb = parseInt($("input[name=riverNb]").val(),10);
 
+		canvasMode = $("input[name=canvasMode]").prop("checked");
 		debugMode = $("input[name=debugMode]").prop("checked");
 
 		createMap();
