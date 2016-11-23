@@ -336,14 +336,14 @@ function loadMapCanvas() {
 	}
 	ctx1.putImageData(imgData, 0, 0);
 
-	c2.width = 400;
-	c2.height = 300;
+	c2.width = mapL*5;
+	c2.height = mapH*5;
 
 	ctx2.mozImageSmoothingEnabled = false;
 	ctx2.webkitImageSmoothingEnabled = false;
 	ctx2.msImageSmoothingEnabled = false;
 	ctx2.imageSmoothingEnabled = false;
-	ctx2.drawImage(c1, 0, 0, 400, 300);
+	ctx2.drawImage(c1, 0, 0, mapL*5, mapH*5);
 }
 
 $(document).ready(function() {
