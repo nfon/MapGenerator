@@ -51,7 +51,7 @@ function generateMap() {
 	for (var i=0;i<mapH;i++) {
 		map[i] = new Array();
 		for (var j=0;j<mapL;j++) {
-			map[i][j]={type:1,altitude:getRandomNormal(heightMin,Math.floor((heightMin+heightMax)/2))};
+			map[i][j]={type:1, altitude:getRandomNormal(heightMin,Math.floor((heightMin+heightMax)/2)), opacity:0.1};
 		}
 	}
 }
@@ -277,32 +277,24 @@ function movePlayer(direction){
 		playerX=0;
 		reset = true;
 	}
-	if (reset) {
+	if (reset) 
 		createMap();
-		loadMap();
-	}
-	else
-	{
-		if (canvasMode)
-			loadMapCanvas();
-		else
-			$("#"+playerX+"_"+playerY).addClass("player");
-	}
+	lightSurroundingPlayer();
+	loadMapCanvas();
 }
 
-function loadMap() {
-	if (canvasMode)
-		loadMapCanvas();
-	else {
-		var str = "";
-		for (var i=0;i<mapH;i++) {
-			str+="<div class='line'>";
-			for (var j=0;j<mapL;j++) {
-				str+="<span id='"+i+"_"+j+"' class='case height"+map[i][j].altitude+(map[i][j].type==0?' blue':'')+((i==playerX && j==playerY)?' player':'')+"'></span>";
+function lightSurroundingPlayer(){
+	console.log(playerX,playerY,map[playerX][playerY].altitude);
+	var lightSize=map[playerX][playerY].altitude*2;
+	console.log("lightSize= "+lightSize);
+	for (var i=(playerX-lightSize);i<=(playerX+lightSize);i++) {
+		for (var j=(playerY-lightSize);j<=(playerY+lightSize);j++) {
+			if (i>=0 && i<mapL) {
+				if (j>=0 && j<mapH) {
+					map[i][j].opacity=1;
+				}
 			}
-			str+="</div>";
 		}
-		$("#map").html(str);
 	}
 }
 
@@ -322,10 +314,10 @@ function loadMapCanvas() {
 
 	var imgData = ctx1.createImageData(mapL, mapH);
 	for (var i=0; i<imgData.data.length; i+=4) {
-	    var x = (i/4)%mapL;
-	    var y = Math.floor(i/4/mapL);
+	    var y = (i/4)%mapL;
+	    var x = Math.floor(i/4/mapL);
 
-	    if (playerX==y && playerY==x) {
+	    if (playerX==x && playerY==y) {
 			imgData.data[i] = 255; 
     		imgData.data[i+1] = 0;
     		imgData.data[i+2] = 0;
@@ -336,13 +328,13 @@ function loadMapCanvas() {
 				imgData.data[i] = r[map[x][y].altitude]; 
 	    		imgData.data[i+1] = g[map[x][y].altitude];
 	    		imgData.data[i+2] = b[map[x][y].altitude];
-	    		imgData.data[i+3] = 255; 
+	    		imgData.data[i+3] = 255*[map[x][y].opacity]; 
 	    	}
 	    	else {
 			    imgData.data[i] = 66; 
 	    		imgData.data[i+1] = 198;
 	    		imgData.data[i+2] = 255;
-	    		imgData.data[i+3] = 255; 
+	    		imgData.data[i+3] = 255*[map[x][y].opacity]; 
 	    	}
 	    }
 
@@ -382,7 +374,7 @@ $(document).ready(function() {
 		debugMode = $("input[name=debugMode]").prop("checked");
 
 		createMap();
-		loadMap();
+		loadMapCanvas();
 		return false;
 	});
 

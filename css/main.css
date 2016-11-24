@@ -27,6 +27,10 @@
 	height: 5px;
 }
 
+canvas{
+	background-color: black;
+}
+
 .height0{
 	background-color: #42C6FF;	
 }
