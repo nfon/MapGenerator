@@ -9,7 +9,6 @@ var riverNb = 2;
 var playerX = 0;
 var playerY = 0;
 var map = new Array();
-var canvasMode = false;
 var debugMode = false;
 
 function clearMessage() {
@@ -380,6 +379,7 @@ $(document).ready(function() {
 
 		createMap();
 		loadMapCanvas();
+		movePlayer();
 		return false;
 	});
 
