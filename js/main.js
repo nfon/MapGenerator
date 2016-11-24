@@ -8,8 +8,12 @@ var lakeNb = 1;
 var riverNb = 2;
 var playerX = 0;
 var playerY = 0;
+var opponentNb =0;
 var map = new Array();
+var coefLightSize = 2;
+var fogMode = true;
 var debugMode = false;
+var opponents = new Array();
 
 function clearMessage() {
 	$("#messages").html("");
@@ -50,7 +54,7 @@ function generateMap() {
 	for (var i=0;i<mapH;i++) {
 		map[i] = new Array();
 		for (var j=0;j<mapL;j++) {
-			map[i][j]={type:1, altitude:getRandomNormal(heightMin,Math.floor((heightMin+heightMax)/2)), opacity:0.1};
+			map[i][j]={type:1, altitude:getRandomNormal(heightMin,Math.floor((heightMin+heightMax)/2)), opacity:fogMode?0.1:1};
 		}
 	}
 }
@@ -278,12 +282,14 @@ function movePlayer(direction){
 	}
 	if (reset) 
 		createMap();
-	lightSurroundingPlayer();
+	if (fogMode)
+		lightSurroundingPlayer();
+	countDiscoverty();
 	loadMapCanvas();
 }
 
 function lightSurroundingPlayer(){
-	var lightSize=map[playerX][playerY].altitude*2;
+	var lightSize=map[playerX][playerY].altitude*coefLightSize;
 	for (var i=(playerX-(lightSize+2));i<=(playerX+lightSize+2);i++) {
 		for (var j=(playerY-(lightSize+2));j<=(playerY+lightSize+2);j++) {
 			if (i>=0 && i<mapL) {
@@ -300,6 +306,16 @@ function lightSurroundingPlayer(){
 			}
 		}
 	}
+}
+
+function countDiscoverty(){
+	var discovery =  0;
+	for (var i=0;i<mapH;i++) {
+		for (var j=0;j<mapL;j++) {
+			discovery+=map[i][j].opacity;
+		}
+	}
+    $("#discovery").text( Math.round( (discovery/map.length) * 100)/100+"% discovered");
 }
 
 function loadMapCanvas() {
@@ -320,7 +336,6 @@ function loadMapCanvas() {
 	for (var i=0; i<imgData.data.length; i+=4) {
 	    var y = (i/4)%mapL;
 	    var x = Math.floor(i/4/mapL);
-
 	    if (playerX==x && playerY==y) {
 			imgData.data[i] = 255; 
     		imgData.data[i+1] = 0;
@@ -341,6 +356,14 @@ function loadMapCanvas() {
 	    		imgData.data[i+3] = 255*[map[x][y].opacity]; 
 	    	}
 	    }
+	    for (var o=0; o<opponentNb; o++) {
+	    	if (opponents[o].x == x && opponents[o].y == y) {
+				imgData.data[i] = 244; 
+	    		imgData.data[i+1] = 66;
+	    		imgData.data[i+2] = 194;
+	    		imgData.data[i+3] = 255*[map[x][y].opacity]; 
+	    	}
+	    }
 
 	}
 	ctx1.putImageData(imgData, 0, 0);
@@ -353,6 +376,43 @@ function loadMapCanvas() {
 	ctx2.msImageSmoothingEnabled = false;
 	ctx2.imageSmoothingEnabled = false;
 	ctx2.drawImage(c1, 0, 0, mapL*5, mapH*5);
+}
+
+function generateOpponents() {
+	for (var i=0; i<opponentNb; i++) {
+		var x = getRandom(0,mapH-1);
+		var y = getRandom(0,mapL-1);
+		opponents[i] = {x:x,y:y};
+	}
+	
+	window.setInterval(function(){
+		for (var i=0; i<opponentNb; i++) {
+			moveOpponent(i);
+		}
+		loadMapCanvas();
+	},1000);
+}
+
+function moveOpponent(i){
+	
+	var direction = getRandom(0,8);
+	var x = opponents[i].x;
+	var y = opponents[i].y;
+	switch(direction) {
+		case 0 : x=x-1; y=y-1; break;
+		case 1 : x=x-1; break;
+		case 2 : x=x-1; y=y+1; break;
+		case 3 : y=y-1; break;
+		case 4 : y=y+1; break;
+		case 5 : x=x+1; y=y-1; break;
+		case 6 : x=x+1; break;
+		case 7 : x=x+1; y=y+1; break;
+	}
+
+	x = Math.min(mapH-1,Math.max(0,x));
+	y = Math.min(mapH-1,Math.max(0,y));
+	opponents[i].x = x;
+	opponents[i].y = y;
 }
 
 $(document).ready(function() {
@@ -374,12 +434,16 @@ $(document).ready(function() {
 		lakeNb = parseInt($("input[name=lakeNb]").val(),10);
 		riverNb = parseInt($("input[name=riverNb]").val(),10);
 
-		canvasMode = $("input[name=canvasMode]").prop("checked");
+		opponentNb = parseInt($("input[name=opponentNb]").val(),10);
+
+		fogMode = $("input[name=fogMode]").prop("checked");
 		debugMode = $("input[name=debugMode]").prop("checked");
 
 		createMap();
+		generateOpponents();
 		loadMapCanvas();
 		movePlayer();
+		
 		return false;
 	});
 
