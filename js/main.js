@@ -385,15 +385,6 @@ function generateOpponents() {
 		var y = getRandom(0,mapL-1);
 		opponents[i] = {x:x,y:y,health:100};
 	}
-
-	window.setInterval(function(){
-		for (var i=0; i<opponentNb; i++) {
-			moveOpponent(i);
-			if (fogOpponentsMode)
-				lightSurroundingPlayer(opponents[i].x,opponents[i].y);
-		}
-		loadMapCanvas();
-	},1000);
 }
 
 function moveOpponent(i){
@@ -454,14 +445,41 @@ $(document).ready(function() {
 
 	$(document).on("keyup",function(evt){
 		if (map.length>0) {
-			var direction = -1;
-			switch (evt.keyCode){
-				case 37 : direction = 0; break;
-				case 38 : direction = 1; break;
-				case 39 : direction = 2; break;
-				case 40 : direction = 3; break;
+			var keydown = -1;
+			$(document).on("keydown",function(evt) {
+				if(evt.keyCode>36 && evt.keyCode<41) {
+					keydown = evt.keyCode;
+				}
+			});
+			
+			$(document).on("keyup",function(evt) {
+				if(evt.keyCode == keydown && evt.keyCode>36 && evt.keyCode<41)
+					keydown = -1;
+			});
+
+			var delay = 250;
+			var delayOpponent = 1000;
+			var last = Date.now();
+			var lastOpponent = Date.now();
+			function tick()	{	
+				//delay
+				if(Date.now()-last>delay) {
+					last = Date.now();
+					if(keydown != -1 && map.length)
+						movePlayer(keydown-37);
+				}
+				if(Date.now()-lastOpponent>delayOpponent) {
+					lastOpponent = Date.now();
+					for (var i=0; i<opponentNb; i++) {
+						moveOpponent(i);
+						if (fogOpponentsMode)
+							lightSurroundingPlayer(opponents[i].x,opponents[i].y);
+					}
+					loadMapCanvas();
+				}
+				requestAnimationFrame(tick);	
 			}
-			movePlayer(direction);
+			requestAnimationFrame(tick);
 		}
 	})
 });
