@@ -409,6 +409,7 @@ function moveOpponent(i){
 }
 
 $(document).ready(function() {
+
 	$("#mapSettings").on("submit",function(evt){
 		mapH = parseInt($("input[name=mapHeight]").val(),10);
 		mapL = parseInt($("input[name=mapWidth]").val(),10);
@@ -436,8 +437,31 @@ $(document).ready(function() {
 
 		createMap();
 		generateOpponents();
-		loadMapCanvas();
 		movePlayer();
+
+		var delayOpponent = 1000;
+		var lastOpponent = Date.now();
+		var keydown = -1;
+
+		function ia() { 
+			if (Date.now()-lastOpponent>delayOpponent) {
+				lastOpponent = Date.now();
+				for (var i=0; i<opponentNb; i++) {
+					moveOpponent(i);
+					if (fogOpponentsMode)
+						lightSurroundingPlayer(opponents[i].x,opponents[i].y);
+				}
+			} 
+			requestAnimationFrame(ia);
+		}
+
+		function draw() {
+			loadMapCanvas();  
+			requestAnimationFrame(draw);
+		}
+		
+		requestAnimationFrame(ia);
+		requestAnimationFrame(draw);
 		
 		return false;
 	});
@@ -445,41 +469,30 @@ $(document).ready(function() {
 	$(document).on("keyup",function(evt){
 		if (map.length>0) {
 			var keydown = -1;
+			var delay = 250;
+			var last = Date.now();
+
 			$(document).on("keydown",function(evt) {
-				if(evt.keyCode>36 && evt.keyCode<41) {
+				if (evt.keyCode>36 && evt.keyCode<41)
 					keydown = evt.keyCode;
-				}
 			});
 			
 			$(document).on("keyup",function(evt) {
-				if(evt.keyCode == keydown && evt.keyCode>36 && evt.keyCode<41)
+				if (evt.keyCode == keydown && evt.keyCode>36 && evt.keyCode<41)
 					keydown = -1;
 			});
 
-			var delay = 250;
-			var delayOpponent = 1000;
-			var last = Date.now();
-			var lastOpponent = Date.now();
+	
 			function tick()	{	
 				//delay
-				if(Date.now()-last>delay) {
+				if (Date.now()-last>delay) {
 					last = Date.now();
-					if(keydown != -1 && map.length) {
+					if (keydown != -1 && map.length)
 						movePlayer(keydown-37);
-					}
 				}
-				if(Date.now()-lastOpponent>delayOpponent) {
-					lastOpponent = Date.now();
-					for (var i=0; i<opponentNb; i++) {
-						moveOpponent(i);
-						if (fogOpponentsMode)
-							lightSurroundingPlayer(opponents[i].x,opponents[i].y);
-					}
-				}
-				loadMapCanvas();
 				requestAnimationFrame(tick);
 			}
 			requestAnimationFrame(tick);
 		}
-	})
+	});
 });
