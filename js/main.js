@@ -286,7 +286,6 @@ function movePlayer(direction){
 	if (fogMode)
 		lightSurroundingPlayer(playerX,playerY);
 	countDiscoverty();
-	loadMapCanvas();
 }
 
 function lightSurroundingPlayer(x,y){
@@ -465,8 +464,9 @@ $(document).ready(function() {
 				//delay
 				if(Date.now()-last>delay) {
 					last = Date.now();
-					if(keydown != -1 && map.length)
+					if(keydown != -1 && map.length) {
 						movePlayer(keydown-37);
+					}
 				}
 				if(Date.now()-lastOpponent>delayOpponent) {
 					lastOpponent = Date.now();
@@ -475,9 +475,9 @@ $(document).ready(function() {
 						if (fogOpponentsMode)
 							lightSurroundingPlayer(opponents[i].x,opponents[i].y);
 					}
-					loadMapCanvas();
 				}
-				requestAnimationFrame(tick);	
+				loadMapCanvas();
+				requestAnimationFrame(tick);
 			}
 			requestAnimationFrame(tick);
 		}
