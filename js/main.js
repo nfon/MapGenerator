@@ -284,14 +284,19 @@ function movePlayer(direction){
 }
 
 function lightSurroundingPlayer(){
-	console.log(playerX,playerY,map[playerX][playerY].altitude);
 	var lightSize=map[playerX][playerY].altitude*2;
-	console.log("lightSize= "+lightSize);
-	for (var i=(playerX-lightSize);i<=(playerX+lightSize);i++) {
-		for (var j=(playerY-lightSize);j<=(playerY+lightSize);j++) {
+	for (var i=(playerX-(lightSize+2));i<=(playerX+lightSize+2);i++) {
+		for (var j=(playerY-(lightSize+2));j<=(playerY+lightSize+2);j++) {
 			if (i>=0 && i<mapL) {
 				if (j>=0 && j<mapH) {
-					map[i][j].opacity=1;
+					var powX = Math.pow(i-playerX,2);
+					var powY = Math.pow(j-playerY,2);
+					if ( powX + powY <= Math.pow(lightSize+2,2) && map[i][j].opacity<0.3)
+						map[i][j].opacity=0.3;
+					if ( powX + powY <= Math.pow(lightSize+1,2) && map[i][j].opacity<0.5)
+						map[i][j].opacity=0.5;
+					if ( powX + powY < Math.pow(lightSize,2) )
+						map[i][j].opacity=1;
 				}
 			}
 		}
@@ -379,13 +384,15 @@ $(document).ready(function() {
 	});
 
 	$(document).on("keyup",function(evt){
-		var direction = -1;
-		switch (evt.keyCode){
-			case 37 : direction = 0; break;
-			case 38 : direction = 1; break;
-			case 39 : direction = 2; break;
-			case 40 : direction = 3; break;
+		if (map.length>0) {
+			var direction = -1;
+			switch (evt.keyCode){
+				case 37 : direction = 0; break;
+				case 38 : direction = 1; break;
+				case 39 : direction = 2; break;
+				case 40 : direction = 3; break;
+			}
+			movePlayer(direction);
 		}
-		movePlayer(direction);
 	})
 });
