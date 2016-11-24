@@ -8,10 +8,11 @@ var lakeNb = 1;
 var riverNb = 2;
 var playerX = 0;
 var playerY = 0;
-var opponentNb =0;
+var opponentNb = 0;
 var map = new Array();
 var coefLightSize = 2;
 var fogMode = true;
+var fogOpponentsMode = true;
 var debugMode = false;
 var opponents = new Array();
 
@@ -283,19 +284,19 @@ function movePlayer(direction){
 	if (reset) 
 		createMap();
 	if (fogMode)
-		lightSurroundingPlayer();
+		lightSurroundingPlayer(playerX,playerY);
 	countDiscoverty();
 	loadMapCanvas();
 }
 
-function lightSurroundingPlayer(){
-	var lightSize=map[playerX][playerY].altitude*coefLightSize;
-	for (var i=(playerX-(lightSize+2));i<=(playerX+lightSize+2);i++) {
-		for (var j=(playerY-(lightSize+2));j<=(playerY+lightSize+2);j++) {
+function lightSurroundingPlayer(x,y){
+	var lightSize=map[x][y].altitude*coefLightSize;
+	for (var i=(x-(lightSize+2));i<=(x+lightSize+2);i++) {
+		for (var j=(y-(lightSize+2));j<=(y+lightSize+2);j++) {
 			if (i>=0 && i<mapL) {
 				if (j>=0 && j<mapH) {
-					var powX = Math.pow(i-playerX,2);
-					var powY = Math.pow(j-playerY,2);
+					var powX = Math.pow(i-x,2);
+					var powY = Math.pow(j-y,2);
 					if ( powX + powY <= Math.pow(lightSize+2,2) && map[i][j].opacity<0.3)
 						map[i][j].opacity=0.3;
 					if ( powX + powY <= Math.pow(lightSize+1,2) && map[i][j].opacity<0.5)
@@ -357,7 +358,7 @@ function loadMapCanvas() {
 	    	}
 	    }
 	    for (var o=0; o<opponentNb; o++) {
-	    	if (opponents[o].x == x && opponents[o].y == y) {
+	    	if (opponents[o].x == x && opponents[o].y == y && opponents[o].health>0) {
 				imgData.data[i] = 244; 
 	    		imgData.data[i+1] = 66;
 	    		imgData.data[i+2] = 194;
@@ -382,12 +383,14 @@ function generateOpponents() {
 	for (var i=0; i<opponentNb; i++) {
 		var x = getRandom(0,mapH-1);
 		var y = getRandom(0,mapL-1);
-		opponents[i] = {x:x,y:y};
+		opponents[i] = {x:x,y:y,health:100};
 	}
-	
+
 	window.setInterval(function(){
 		for (var i=0; i<opponentNb; i++) {
 			moveOpponent(i);
+			if (fogOpponentsMode)
+				lightSurroundingPlayer(opponents[i].x,opponents[i].y);
 		}
 		loadMapCanvas();
 	},1000);
@@ -436,7 +439,9 @@ $(document).ready(function() {
 
 		opponentNb = parseInt($("input[name=opponentNb]").val(),10);
 
+
 		fogMode = $("input[name=fogMode]").prop("checked");
+		fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
 		debugMode = $("input[name=debugMode]").prop("checked");
 
 		createMap();
