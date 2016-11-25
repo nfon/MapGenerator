@@ -1,9 +1,5 @@
 var map;
-var playerX = 0;
-var playerY = 0;
-var opponentNb = 0;
 var debugMode = false;
-var opponents = new Array();
 
 function clearMessage() {
 	$("#messages").html("");
@@ -24,32 +20,26 @@ function getRandomNormal(min, max) {
 	return Math.min(max,Math.max(min,Math.floor(chance.normal({mean: ((min+max)/2), dev: ((min+max)/4)}))));
 }
 
-var Map = function (){
-	this.initialized = false;
+var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode){
 	this.map  = new Array();
+	this.mapL = mapL;
+	this.mapH = mapH;
+	this.heightMin = heightMin;
+	this.heightMax = heightMax;
+
+	this.summitNb = summitNb;
+	this.lakeNb = lakeNb;
+	this.riverNb = riverNb;
+
+	this.fogMode = fogMode;
+	this.fogOpponentsMode = fogOpponentsMode;
 	this.coefLightSize = 2;
 
+	this.initialized = true;
+
+	this.ticker;
+
     var self = this;
-
-    this.bind = function() {
-    	var self = this;
-    }
-
-    this.init = function(mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode) {
-    	self.mapL = mapL;
-		self.mapH = mapH;
-		self.heightMin = heightMin;
-		self.heightMax = heightMax;
-
-		self.summitNb = summitNb;
-		self.lakeNb = lakeNb;
-		self.riverNb = riverNb;
-
-		self.fogMode = fogMode;
-		self.fogOpponentsMode = fogOpponentsMode;
-
-		self.initialized = true;
-    }
 
     this.create = function(){
 		clearMessage();
@@ -321,7 +311,7 @@ var Map = function (){
 		for (var i=0; i<imgData.data.length; i+=4) {
 		    var y = (i/4)%self.mapL;
 		    var x = Math.floor(i/4/self.mapL);
-		    if (playerX==x && playerY==y) {
+		    if (hero.coordinates.x==x && hero.coordinates.y==y) {
 				imgData.data[i] = 255; 
 	    		imgData.data[i+1] = 0;
 	    		imgData.data[i+2] = 0;
@@ -341,8 +331,8 @@ var Map = function (){
 		    		imgData.data[i+3] = 255*[self.map[x][y].opacity]; 
 		    	}
 		    }
-		    for (var o=0; o<opponentNb; o++) {
-		    	if (opponents[o].coordinates.x == x && opponents[o].coordinates.y == y && opponents[o].health>0) {
+		    for (var o=0; o<opponents.opponentNb; o++) {
+		    	if (opponents.opponents[o].coordinates.x == x && opponents.opponents[o].coordinates.y == y && opponents.opponents[o].health>0) {
 					imgData.data[i] = 244; 
 		    		imgData.data[i+1] = 66;
 		    		imgData.data[i+2] = 194;
@@ -362,59 +352,146 @@ var Map = function (){
 		ctx2.imageSmoothingEnabled = false;
 		ctx2.drawImage(c1, 0, 0, self.mapL*5, self.mapH*5);
 	}
-}
 
-
-function movePlayer(direction){
-	$("#"+playerX+"_"+playerY).removeClass("player");
-	switch(direction) {
-		case 0 : playerY--; break;
-		case 1 : playerX--; break;
-		case 2 : playerY++; break;
-		case 3 : playerX++; break;
-	}
-
-	var reset = false;
-	if (playerY<0) {
-		playerY=mapH-1;
-		reset = true;
-	}
-	if (playerY>mapH-1) {
-		playerY=0;
-		reset = true;
-	}
-	if (playerX<0) {
-		playerX=mapL-1;
-		reset = true;
-	}
-	if (playerX>mapL-1) {
-		playerX=0;
-		reset = true;
-	}
-	
-	if (reset)
-		map.create();
-	if (fogMode)
-		map.lightSurroundingPlayer(playerX,playerY);
-	map.countDiscovery();
-}
-
-function generateOpponents() {
-	for (var i=0; i<opponentNb; i++) {
-		var x = getRandom(0,mapH-1);
-		var y = getRandom(0,mapL-1);
-		opponents[i] = new Opponent({x:x,y:y});
+	this.tick = function() {
+		self.draw();  
+		self.ticker = requestAnimationFrame(self.tick);
 	}
 }
 
-var Opponent = function (coordinates){ 
-    this.coordinates = {x:coordinates.x,y:coordinates.y};
-    this.health = 100;
+var Player = function(){
+    this.coordinates;
+    this.health;
     var self = this;
 
-    this.bind = function() {
-
+    this.init = function(coordinates,health)
+    {
+    	self.coordinates = {x:coordinates.x,y:coordinates.y};
+    	self.health = 100;
     }
+}
+
+var Hero = function(coordinates) {
+	Player.call(this);
+
+	var self = this;
+	this.last = Date.now();
+	this.keydown = -1;
+	this.ticker;
+	self.init(coordinates,100);
+
+	this.bind = function() {
+		$(document).on("keyup",function(evt) {
+			if (map) {
+				$(document).on("keydown",function(evt) {
+					if (evt.keyCode>36 && evt.keyCode<41)
+						self.keydown = evt.keyCode;
+				});
+				
+				$(document).on("keyup",function(evt) {
+					if (evt.keyCode == self.keydown && evt.keyCode>36 && evt.keyCode<41)
+						self.keydown = -1;
+				});
+				if (self.ticker)
+					cancelAnimationFrame(self.tick);
+				self.tick();
+			}
+		});
+	}
+
+	this.tick = function() {
+		//delay
+		var delay = 250;
+		if (Date.now()-self.last>delay) {
+			self.last = Date.now();
+			if (self.keydown != -1 && map && map.initialized)
+				self.move(self.keydown-37);
+		}
+		self.ticker = requestAnimationFrame(self.tick);
+	}
+
+	this.move = function(direction) {
+		$("#"+self.coordinates.x+"_"+self.coordinates.y).removeClass("player");
+		switch(direction) {
+			case 0 : self.coordinates.y--; break;
+			case 1 : self.coordinates.x--; break;
+			case 2 : self.coordinates.y++; break;
+			case 3 : self.coordinates.x++; break;
+		}
+
+		var reset = false;
+		if (self.coordinates.y<0) {
+			self.coordinates.y=map.mapH-1;
+			reset = true;
+		}
+		if (self.coordinates.y>map.mapH-1) {
+			self.coordinates.y=0;
+			reset = true;
+		}
+		if (self.coordinates.x<0) {
+			self.coordinates.x=map.mapL-1;
+			reset = true;
+		}
+		if (self.coordinates.x>map.mapL-1) {
+			self.coordinates.x=0;
+			reset = true;
+		}
+		
+		if (reset)
+			map.create();
+		if (fogMode)
+			map.lightSurroundingPlayer(self.coordinates.x,self.coordinates.y);
+		map.countDiscovery();
+	}
+
+	this.bind();
+}
+
+var Opponents = function(opponentNb) {
+	this.opponentNb = opponentNb;
+	this.delayOpponent = 500;
+	this.lastOpponentMove = Date.now();
+	this.opponents = new Array();
+	this.ticker;
+	var self = this;
+
+	this.generate = function() {
+		for (var i=0; i<self.opponentNb; i++) {
+			var x = getRandom(0,map.mapH-1);
+			var y = getRandom(0,map.mapL-1);
+			console.log(i,x,y);
+			self.opponents[i] = new Opponent({x:x,y:y});
+		}
+		console.log("init");
+		for (var i=0; i<self.opponentNb; i++)
+			console.log(self.opponents[i].coordinates);
+
+		if (self.ticker)
+			cancelAnimationFrame(self.tick);
+		self.tick();
+	}
+
+	this.tick = function() {
+		if (Date.now()-self.lastOpponentMove>self.delayOpponent) {
+			self.lastOpponentMove = Date.now();
+			for (var i=0; i<self.opponentNb; i++) {
+				self.opponents[i].move();
+				if (fogOpponentsMode)
+					map.lightSurroundingPlayer(self.opponents[i].coordinates.x,self.opponents[i].coordinates.y);
+			}
+		}
+		self.ticker = requestAnimationFrame(self.tick);
+	}
+
+	this.generate();
+}
+
+var Opponent = function (coordinates){
+	Player.call(this);
+
+	var self = this;
+
+	self.init(coordinates,100);
 
     this.move = function(){
 		var direction = getRandom(0,8);
@@ -431,18 +508,15 @@ var Opponent = function (coordinates){
 			case 7 : x=x+1; y=y+1; break;
 		}
 
-		x = Math.min(mapH-1,Math.max(0,x));
-		y = Math.min(mapH-1,Math.max(0,y));
+		x = Math.min(map.mapH-1,Math.max(0,x));
+		y = Math.min(map.mapH-1,Math.max(0,y));
 		self.coordinates.x = x;
 		self.coordinates.y = y;
     }
 }
 
-
 $(document).ready(function() {
-
-	map = new Map();
-
+	
 	$("#mapSettings").on("submit",function(evt){
 		mapH = parseInt($("input[name=mapHeight]").val(),10);
 		mapL = parseInt($("input[name=mapWidth]").val(),10);
@@ -468,67 +542,25 @@ $(document).ready(function() {
 		fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
 		debugMode = $("input[name=debugMode]").prop("checked");
 
-		map.init(mapL,mapH,heightMin,heightMax,summitNb,lakeNb,riverNb,fogMode,fogOpponentsMode);
+		map = new Map(mapL,mapH,heightMin,heightMax,summitNb,lakeNb,riverNb,fogMode,fogOpponentsMode);
 		map.create();
 
-		generateOpponents();
-		movePlayer();
+		Opponent.prototype = Object.create(Player.prototype); 
+		Opponent.prototype.constructor = Player;
 
-		var delayOpponent = 500;
-		var lastOpponent = Date.now();
-		var keydown = -1;
+		opponents = new Opponents(opponentNb);
 
-		function ia() { 
-			if (Date.now()-lastOpponent>delayOpponent) {
-				lastOpponent = Date.now();
-				for (var i=0; i<opponentNb; i++) {
-					opponents[i].move();
-					//moveOpponent(i);
-					if (fogOpponentsMode)
-						map.lightSurroundingPlayer(opponents[i].coordinates.x,opponents[i].coordinates.y);
-				}
-			} 
-			requestAnimationFrame(ia);
-		}
 
-		function draw() {
-			map.draw();  
-			requestAnimationFrame(draw);
-		}
-		
-		requestAnimationFrame(ia);
-		requestAnimationFrame(draw);
+		Hero.prototype = Object.create(Player.prototype); 
+		Hero.prototype.constructor = Player;
+
+		hero = new Hero({x:0,y:0});
+		hero.move();
+
+		if (map.ticker)
+			cancelAnimationFrame(map.tick);
+		map.tick();
 		
 		return false;
-	});
-
-	$(document).on("keyup",function(evt){
-		if (map.length>0) {
-			var keydown = -1;
-			var delay = 250;
-			var last = Date.now();
-
-			$(document).on("keydown",function(evt) {
-				if (evt.keyCode>36 && evt.keyCode<41)
-					keydown = evt.keyCode;
-			});
-			
-			$(document).on("keyup",function(evt) {
-				if (evt.keyCode == keydown && evt.keyCode>36 && evt.keyCode<41)
-					keydown = -1;
-			});
-
-	
-			function tick()	{	
-				//delay
-				if (Date.now()-last>delay) {
-					last = Date.now();
-					if (keydown != -1 && map && map.initialized)
-						movePlayer(keydown-37);
-				}
-				requestAnimationFrame(tick);
-			}
-			requestAnimationFrame(tick);
-		}
 	});
 });
