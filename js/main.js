@@ -459,13 +459,8 @@ var Opponents = function(opponentNb) {
 		for (var i=0; i<self.opponentNb; i++) {
 			var x = getRandom(0,map.mapH-1);
 			var y = getRandom(0,map.mapL-1);
-			console.log(i,x,y);
 			self.opponents[i] = new Opponent({x:x,y:y});
 		}
-		console.log("init");
-		for (var i=0; i<self.opponentNb; i++)
-			console.log(self.opponents[i].coordinates);
-
 		if (self.ticker)
 			cancelAnimationFrame(self.tick);
 		self.tick();
