@@ -263,7 +263,15 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		}
 	}
 
-	this.lightSurroundingPlayer = function(x,y) {
+	this.lightSurroundingPlayer = function(o) {
+		if (o>=0)
+			var player = opponents.opponents[o];
+		else
+			var player = hero;
+
+		var x = player.coordinates.x;
+		var y = player.coordinates.y;
+
 		var lightSize=self.map[x][y].altitude*self.coefLightSize;
 		for (var i=(x-(lightSize+2));i<=(x+lightSize+2);i++) {
 			for (var j=(y-(lightSize+2));j<=(y+lightSize+2);j++) {
@@ -271,12 +279,15 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 					if (j>=0 && j<self.mapH) {
 						var powX = Math.pow(i-x,2);
 						var powY = Math.pow(j-y,2);
-						if ( powX + powY <= Math.pow(lightSize+2,2) && self.map[i][j].opacity<0.3)
-							self.map[i][j].opacity=0.3;
-						if ( powX + powY <= Math.pow(lightSize+1,2) && self.map[i][j].opacity<0.5)
-							self.map[i][j].opacity=0.5;
+						var opacity = player.map[i][j].opacity;
+						if ( powX + powY <= Math.pow(lightSize+2,2) && player.map[i][j].opacity<0.3 )
+							opacity=0.3;
+						if ( powX + powY <= Math.pow(lightSize+1,2) && player.map[i][j].opacity<0.5 )
+							opacity=0.5;
 						if ( powX + powY < Math.pow(lightSize,2) )
-							self.map[i][j].opacity=1;
+							opacity=1;
+
+						player.map[i][j].opacity=opacity;
 					}
 				}
 			}
@@ -311,24 +322,35 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		for (var i=0; i<imgData.data.length; i+=4) {
 		    var y = (i/4)%self.mapL;
 		    var x = Math.floor(i/4/self.mapL);
+		    var opacity = self.map[x][y].opacity;
 		    if (hero.coordinates.x==x && hero.coordinates.y==y) {
 				imgData.data[i] = 255; 
 	    		imgData.data[i+1] = 0;
 	    		imgData.data[i+2] = 0;
-	    		imgData.data[i+3] = 255; 
+	    		imgData.data[i+3] = 255;
+	    		opacity=255;
 		    }
 		    else {
+		    	if (self.fogMode && hero.follow) {
+		    		opacity = Math.max(opacity,hero.map[x][y].opacity);
+		    	}
+		    	if (self.fogOpponentsMode) {
+		    		for (var o=0; o<opponents.opponentNb; o++) {
+		    			if (opponents.opponents[o].follow)
+		    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
+		    		}
+	    		}
 		    	if (self.map[x][y].type==1) {
 					imgData.data[i] = r[self.map[x][y].altitude]; 
 		    		imgData.data[i+1] = g[self.map[x][y].altitude];
 		    		imgData.data[i+2] = b[self.map[x][y].altitude];
-		    		imgData.data[i+3] = 255*[self.map[x][y].opacity]; 
+		    		imgData.data[i+3] = 255*opacity;
 		    	}
 		    	else {
 				    imgData.data[i] = 66; 
 		    		imgData.data[i+1] = 198;
 		    		imgData.data[i+2] = 255;
-		    		imgData.data[i+3] = 255*[self.map[x][y].opacity]; 
+	    			imgData.data[i+3] = 255*opacity; 
 		    	}
 		    }
 		    for (var o=0; o<opponents.opponentNb; o++) {
@@ -336,7 +358,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 					imgData.data[i] = 244; 
 		    		imgData.data[i+1] = 66;
 		    		imgData.data[i+2] = 194;
-		    		imgData.data[i+3] = 255*[self.map[x][y].opacity]; 
+		    		imgData.data[i+3] = 255*opacity; 
 		    	}
 		    }
 
@@ -354,21 +376,45 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 
 	this.tick = function() {
-		self.draw();  
+		self.draw();
 		self.ticker = requestAnimationFrame(self.tick);
 	}
 }
 
 var Player = function(){
+	this.id;
     this.coordinates;
     this.health;
+    this.map;
+    this.follow = false;
     var self = this;
 
-    this.init = function(coordinates,health)
+    this.init = function(id,coordinates,health,follow)
     {
+    	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.health = 100;
+    	self.follow = follow;
+    	self.map = $.extend(true, [], map.map);
     }
+
+    this.updateTracker = function(){
+    	var $tracker = $("#tracker");
+    	var $playerTracker;
+    	if ($tracker.find("#id_"+self.id).length == 0)
+    		$tracker.append("<li id='id_"+self.id+"'><div><span>"+self.id+"</span><br/><span class='coord'>"+self.coordinates.x+", "+self.coordinates.y+"</span><br/><span class='health'>"+self.health+"</span><br/><span><input type='checkbox' "+(self.follow?'checked':'')+"></span></div></li>");
+    	$playerTracker = $tracker.find("#id_"+self.id);
+    	$playerTracker.find(".coord").text(self.coordinates.x+", "+self.coordinates.y);
+    	$playerTracker.find(".health").text(self.health);
+    	$playerTracker.find("input").prop(self.follow?'checked':'');
+    	this.bind();
+    };
+
+    this.bind = function() {
+		$("#tracker").on("change", "#id_"+self.id+" input[type=checkbox]", function() {
+			self.follow = $(this).prop("checked");
+		});
+	}
 }
 
 var Hero = function(coordinates) {
@@ -378,7 +424,7 @@ var Hero = function(coordinates) {
 	this.last = Date.now();
 	this.keydown = -1;
 	this.ticker;
-	self.init(coordinates,100);
+	self.init(99,coordinates,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -392,11 +438,11 @@ var Hero = function(coordinates) {
 					if (evt.keyCode == self.keydown && evt.keyCode>36 && evt.keyCode<41)
 						self.keydown = -1;
 				});
-				if (self.ticker)
-					cancelAnimationFrame(self.tick);
-				self.tick();
 			}
 		});
+		if (self.ticker)
+			cancelAnimationFrame(self.tick);
+		self.tick();
 	}
 
 	this.tick = function() {
@@ -406,6 +452,7 @@ var Hero = function(coordinates) {
 			self.last = Date.now();
 			if (self.keydown != -1 && map && map.initialized)
 				self.move(self.keydown-37);
+			self.updateTracker();
 		}
 		self.ticker = requestAnimationFrame(self.tick);
 	}
@@ -440,7 +487,7 @@ var Hero = function(coordinates) {
 		if (reset)
 			map.create();
 		if (fogMode)
-			map.lightSurroundingPlayer(self.coordinates.x,self.coordinates.y);
+			map.lightSurroundingPlayer(-1);
 		map.countDiscovery();
 	}
 
@@ -459,7 +506,7 @@ var Opponents = function(opponentNb) {
 		for (var i=0; i<self.opponentNb; i++) {
 			var x = getRandom(0,map.mapH-1);
 			var y = getRandom(0,map.mapL-1);
-			self.opponents[i] = new Opponent({x:x,y:y});
+			self.opponents[i] = new Opponent(i,{x:x,y:y});
 		}
 		if (self.ticker)
 			cancelAnimationFrame(self.tick);
@@ -472,7 +519,8 @@ var Opponents = function(opponentNb) {
 			for (var i=0; i<self.opponentNb; i++) {
 				self.opponents[i].move();
 				if (fogOpponentsMode)
-					map.lightSurroundingPlayer(self.opponents[i].coordinates.x,self.opponents[i].coordinates.y);
+					map.lightSurroundingPlayer(i);
+				self.opponents[i].updateTracker();
 			}
 		}
 		self.ticker = requestAnimationFrame(self.tick);
@@ -481,12 +529,12 @@ var Opponents = function(opponentNb) {
 	this.generate();
 }
 
-var Opponent = function (coordinates){
+var Opponent = function (id,coordinates){
 	Player.call(this);
 
 	var self = this;
 
-	self.init(coordinates,100);
+	self.init(id,coordinates,100,false);
 
     this.move = function(){
 		var direction = getRandom(0,8);
