@@ -402,7 +402,7 @@ var Player = function(){
     	var $tracker = $("#tracker");
     	var $playerTracker;
     	if ($tracker.find("#id_"+self.id).length == 0)
-    		$tracker.append("<li id='id_"+self.id+"'><div><span>"+self.id+"</span><br/><span class='coord'>"+self.coordinates.x+", "+self.coordinates.y+"</span><br/><span class='health'>"+self.health+"</span><br/><span><input type='checkbox' "+(self.follow?'checked':'')+"></span></div></li>");
+    		$tracker.append("<li id='id_"+self.id+"'><div>id:<span>"+self.id+"</span><br/>coord:<span class='coord'>"+self.coordinates.x+", "+self.coordinates.y+"</span><br/>health:<span class='health'>"+self.health+"</span><br/>follow:<span><input type='checkbox' "+(self.follow?'checked':'')+"></span></div></li>");
     	$playerTracker = $tracker.find("#id_"+self.id);
     	$playerTracker.find(".coord").text(self.coordinates.x+", "+self.coordinates.y);
     	$playerTracker.find(".health").text(self.health);
