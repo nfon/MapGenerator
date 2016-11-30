@@ -359,11 +359,19 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    	}
 		    }
 		    for (var o=0; o<opponents.opponentNb; o++) {
-		    	if (opponents.opponents[o].coordinates.x == x && opponents.opponents[o].coordinates.y == y && opponents.opponents[o].health>0) {
-					imgData.data[i] = 244; 
-		    		imgData.data[i+1] = 66;
-		    		imgData.data[i+2] = 194;
-		    		imgData.data[i+3] = 255*opacity; 
+		    	var opponent = opponents.opponents[o];
+		    	if (opponent.coordinates.x == x && opponent.coordinates.y == y && opponent.health>0) {
+		    		if (opponent.health) {
+						imgData.data[i] = 244; 
+		    			imgData.data[i+1] = 66;
+		    			imgData.data[i+2] = 194;
+		    		}
+		    		else {
+		    			imgData.data[i] = 255; 
+		    			imgData.data[i+1] = 255;
+		    			imgData.data[i+2] = 255;
+		    		}
+	    			imgData.data[i+3] = 255*opacity; 
 		    	}
 		    }
 
@@ -445,8 +453,7 @@ var Player = function() {
     this.follow = false;
     var self = this;
 
-    this.init = function(id,coordinates,food,health,follow)
-    {
+    this.init = function(id,coordinates,food,health,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.food = food;
@@ -454,15 +461,29 @@ var Player = function() {
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
     }
+
+    this.updateFood = function(coef) {
+    	self.food=Math.max(0,self.food-(coef*map.map[self.coordinates.x][self.coordinates.y].altitude));
+    }
+
+    this.checkHealth = function() {
+    	if (self.food<5)
+    		self.health = Math.max(0,self.health-0.1);
+    	if (self.food == 0)
+    		self.health = Math.max(0,self.health-0.5);
+    }
 }
 
 var Hero = function(coordinates) {
 	Player.call(this);
 
-	var self = this;
+	this.delay = 250;
 	this.last = Date.now();
 	this.keydown = -1;
 	this.ticker;
+
+	var self = this;
+
 	self.init(99,coordinates,100,100,true);
 
 	this.bind = function() {
@@ -485,12 +506,13 @@ var Hero = function(coordinates) {
 	}
 
 	this.tick = function() {
-		//delay
-		var delay = 250;
-		if (Date.now()-self.last>delay) {
+		if (Date.now()-self.last>self.delay) {
 			self.last = Date.now();
-			if (self.keydown != -1 && map && map.initialized)
+			if (self.keydown != -1 && map && map.initialized && self.health)
 				self.move(self.keydown-37);
+			else
+				self.updateFood(0.1);
+			self.checkHealth();
 		}
 		self.ticker = requestAnimationFrame(self.tick);
 	}
@@ -521,7 +543,9 @@ var Hero = function(coordinates) {
 			self.coordinates.x=0;
 			reset = true;
 		}
-		
+
+		self.updateFood(0.2);
+
 		if (reset)
 			map.create();
 		if (fogMode)
@@ -555,9 +579,12 @@ var Opponents = function(opponentNb) {
 		if (Date.now()-self.lastOpponentMove>self.delayOpponent) {
 			self.lastOpponentMove = Date.now();
 			for (var i=0; i<self.opponentNb; i++) {
-				self.opponents[i].move();
-				if (fogOpponentsMode)
-					map.lightSurroundingPlayer(i);
+				if (self.opponents[i].health) {
+					self.opponents[i].move();
+					if (fogOpponentsMode)
+						map.lightSurroundingPlayer(i);
+					self.opponents[i].checkHealth();
+				}
 			}
 		}
 		self.ticker = requestAnimationFrame(self.tick);
@@ -592,6 +619,7 @@ var Opponent = function (id,coordinates){
 		y = Math.min(map.mapH-1,Math.max(0,y));
 		self.coordinates.x = x;
 		self.coordinates.y = y;
+		self.updateFood(0.2);
     }
 }
 
