@@ -61,7 +61,12 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		for (var i=0;i<self.mapH;i++) {
 			self.map[i] = new Array();
 			for (var j=0;j<self.mapL;j++) {
-				self.map[i][j]={type:1, altitude:getRandomNormal(self.heightMin,Math.floor((self.heightMin+self.heightMax)/2)), opacity:self.fogMode?0.1:1};
+				var altitude = getRandomNormal(self.heightMin,Math.floor((self.heightMin+self.heightMax)/2));
+				self.map[i][j]={type:1, 
+								altitude:altitude,
+								food:15-altitude,
+								opacity:self.fogMode?0.1:1
+							   };
 			}
 		}
 	}
@@ -298,7 +303,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var discovery =  0;
 		for (var i=0;i<self.mapH;i++) {
 			for (var j=0;j<self.mapL;j++) {
-				discovery+=self.map[i][j].opacity;
+				discovery+=hero.map[i][j].opacity;
 			}
 		}
 	    $("#discovery").text( Math.round( (discovery/self.map.length) * 100)/100+"% discovered");
@@ -381,40 +386,74 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 }
 
-var Player = function(){
+var Ui = function() {
+	this.$tracker = $("#tracker");
+	this.last = Date.now();
+	this.ticker;
+ 	var self = this;
+
+	this.updateTracker = function(){
+		for (var i=-1;i<opponents.opponentNb;i++) {
+			var $playerTracker;
+			var player;
+			if (i==-1)
+				player=hero;
+			else
+				player=opponents.opponents[i];
+			
+	    	if (self.$tracker.find("#id_"+player.id).length == 0)
+	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'>"+player.coordinates.x+", "+player.coordinates.y+"</span><br/>food:<span class='food'>"+player.food+"</span><br/>health:<span class='health'>"+player.health+"</span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
+	    	
+	    	$playerTracker = self.$tracker.find("#id_"+player.id);
+	    	$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
+	    	$playerTracker.find(".food").text(player.food);
+	    	$playerTracker.find(".health").text(player.health);
+	    	$playerTracker.find("input").prop(player.follow?'checked':'');
+		}
+    };
+
+    this.bind = function() {
+		self.$tracker.on("change", "input.follow[type=checkbox]", function() {
+			var id = $(this).parents("li[data-id]").attr("data-id");
+			if (id==99)
+				hero.follow = $(this).prop("checked");
+			else
+				opponents.opponents[id].follow = $(this).prop("checked");
+		});
+	}
+
+	this.tick = function() {
+		//delay
+		var delay = 1000;
+		if (Date.now()-self.last>delay) {
+			self.last = Date.now();
+			self.updateTracker();
+		}
+		self.ticker = requestAnimationFrame(self.tick);
+	}
+
+	this.bind();
+	this.tick();
+}
+
+var Player = function() {
 	this.id;
     this.coordinates;
+    this.food;
     this.health;
     this.map;
     this.follow = false;
     var self = this;
 
-    this.init = function(id,coordinates,health,follow)
+    this.init = function(id,coordinates,food,health,follow)
     {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
-    	self.health = 100;
+    	self.food = food;
+    	self.health = health;
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
     }
-
-    this.updateTracker = function(){
-    	var $tracker = $("#tracker");
-    	var $playerTracker;
-    	if ($tracker.find("#id_"+self.id).length == 0)
-    		$tracker.append("<li id='id_"+self.id+"'><div>id:<span>"+self.id+"</span><br/>coord:<span class='coord'>"+self.coordinates.x+", "+self.coordinates.y+"</span><br/>health:<span class='health'>"+self.health+"</span><br/>follow:<span><input type='checkbox' "+(self.follow?'checked':'')+"></span></div></li>");
-    	$playerTracker = $tracker.find("#id_"+self.id);
-    	$playerTracker.find(".coord").text(self.coordinates.x+", "+self.coordinates.y);
-    	$playerTracker.find(".health").text(self.health);
-    	$playerTracker.find("input").prop(self.follow?'checked':'');
-    	this.bind();
-    };
-
-    this.bind = function() {
-		$("#tracker").on("change", "#id_"+self.id+" input[type=checkbox]", function() {
-			self.follow = $(this).prop("checked");
-		});
-	}
 }
 
 var Hero = function(coordinates) {
@@ -424,7 +463,7 @@ var Hero = function(coordinates) {
 	this.last = Date.now();
 	this.keydown = -1;
 	this.ticker;
-	self.init(99,coordinates,100,true);
+	self.init(99,coordinates,100,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -452,7 +491,6 @@ var Hero = function(coordinates) {
 			self.last = Date.now();
 			if (self.keydown != -1 && map && map.initialized)
 				self.move(self.keydown-37);
-			self.updateTracker();
 		}
 		self.ticker = requestAnimationFrame(self.tick);
 	}
@@ -520,7 +558,6 @@ var Opponents = function(opponentNb) {
 				self.opponents[i].move();
 				if (fogOpponentsMode)
 					map.lightSurroundingPlayer(i);
-				self.opponents[i].updateTracker();
 			}
 		}
 		self.ticker = requestAnimationFrame(self.tick);
@@ -534,7 +571,7 @@ var Opponent = function (id,coordinates){
 
 	var self = this;
 
-	self.init(id,coordinates,100,false);
+	self.init(id,coordinates,100,100,false);
 
     this.move = function(){
 		var direction = getRandom(0,8);
@@ -603,6 +640,8 @@ $(document).ready(function() {
 		if (map.ticker)
 			cancelAnimationFrame(map.tick);
 		map.tick();
+
+		var ui = new Ui();
 		
 		return false;
 	});
