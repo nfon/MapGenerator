@@ -21,6 +21,8 @@ function getRandomNormal(min, max) {
 }
 
 var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode){
+	this.$map = $("#map");
+	this.$canvas = this.$map.find("canvas");
 	this.map  = new Array();
 	this.mapL = mapL;
 	this.mapH = mapH;
@@ -314,7 +316,6 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var g = [198,255,214,181,150,115,79,56,52,153,255];
 		var b = [255,66,39,29,29,23,19,43,42,153,255];
 
-		$("#map").html("<canvas></canvas>");
 		var c2 = $("#map>canvas")[0];
 		var ctx2 = c2.getContext("2d");
 
@@ -360,16 +361,16 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    }
 		    for (var o=0; o<opponents.opponentNb; o++) {
 		    	var opponent = opponents.opponents[o];
-		    	if (opponent.coordinates.x == x && opponent.coordinates.y == y && opponent.health>0) {
+		    	if (opponent.coordinates.x == x && opponent.coordinates.y == y) {
 		    		if (opponent.health) {
 						imgData.data[i] = 244; 
 		    			imgData.data[i+1] = 66;
 		    			imgData.data[i+2] = 194;
 		    		}
 		    		else {
-		    			imgData.data[i] = 255; 
-		    			imgData.data[i+1] = 255;
-		    			imgData.data[i+2] = 255;
+		    			imgData.data[i] = 0; 
+		    			imgData.data[i+1] = 0;
+		    			imgData.data[i+2] = 0;
 		    		}
 	    			imgData.data[i+3] = 255*opacity; 
 		    	}
@@ -410,15 +411,30 @@ var Ui = function() {
 				player=opponents.opponents[i];
 			
 	    	if (self.$tracker.find("#id_"+player.id).length == 0)
-	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'>"+player.coordinates.x+", "+player.coordinates.y+"</span><br/>food:<span class='food'>"+player.food+"</span><br/>health:<span class='health'>"+player.health+"</span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
+	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'>"+player.coordinates.x+", "+player.coordinates.y+"</span><br/>food:<span class='food'>"+player.food+"</span><br/>water:<span class='water'>"+player.water+"</span><br/>health:<span class='health'>"+player.health+"</span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
 	    	$playerTracker.find(".food").text(player.food);
+	    	$playerTracker.find(".water").text(player.water);
 	    	$playerTracker.find(".health").text(player.health);
 	    	$playerTracker.find("input").prop(player.follow?'checked':'');
 		}
     };
+
+    this.getInfoCase = function(x,y) {
+		self.$tracker.find(".active").removeClass('active');
+    	for (var i=-1;i<opponents.opponentNb;i++) {
+			var $playerTracker;
+			var player;
+			if (i==-1)
+				player=hero;
+			else
+				player=opponents.opponents[i];
+			if (player.coordinates.x==x && player.coordinates.y==y)
+	    		self.$tracker.find("#id_"+player.id).addClass('active');
+	    }
+    }
 
     this.bind = function() {
 		self.$tracker.on("change", "input.follow[type=checkbox]", function() {
@@ -428,6 +444,14 @@ var Ui = function() {
 			else
 				opponents.opponents[id].follow = $(this).prop("checked");
 		});
+
+		map.$canvas[0].addEventListener('click', function(event) {
+			var elemLeft = this.offsetLeft;
+    		var elemTop  = this.offsetTop;
+		    var x = parseInt((event.pageX - elemLeft)/5,10);
+		    var y = parseInt((event.pageY - elemTop)/5,10);
+		    self.getInfoCase(x,y);
+		},false);
 	}
 
 	this.tick = function() {
@@ -448,22 +472,29 @@ var Player = function() {
 	this.id;
     this.coordinates;
     this.food;
+    this.water;
     this.health;
     this.map;
     this.follow = false;
     var self = this;
 
-    this.init = function(id,coordinates,food,health,follow) {
+    this.init = function(id,coordinates,food,water,health,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.food = food;
+    	self.water = water;
     	self.health = health;
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
     }
 
-    this.updateFood = function(coef) {
+    this.updatePlayer = function(coef) {
     	self.food=Math.max(0,self.food-(coef*map.map[self.coordinates.x][self.coordinates.y].altitude));
+    	if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
+    		self.water=Math.max(0,self.water-coef);
+    	else
+    		self.water=Math.min(100,self.water+5);
+    	self.checkHealth();
     }
 
     this.checkHealth = function() {
@@ -471,6 +502,9 @@ var Player = function() {
     		self.health = Math.max(0,self.health-0.1);
     	if (self.food == 0)
     		self.health = Math.max(0,self.health-0.5);
+
+    	if (self.water==0)
+    		self.health = Math.max(0,self.health-0.1);
     }
 }
 
@@ -484,7 +518,7 @@ var Hero = function(coordinates) {
 
 	var self = this;
 
-	self.init(99,coordinates,100,100,true);
+	self.init(99,coordinates,100,100,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -511,8 +545,7 @@ var Hero = function(coordinates) {
 			if (self.keydown != -1 && map && map.initialized && self.health)
 				self.move(self.keydown-37);
 			else
-				self.updateFood(0.1);
-			self.checkHealth();
+				self.updatePlayer(0.1);
 		}
 		self.ticker = requestAnimationFrame(self.tick);
 	}
@@ -544,7 +577,7 @@ var Hero = function(coordinates) {
 			reset = true;
 		}
 
-		self.updateFood(0.2);
+		self.updatePlayer(0.2);
 
 		if (reset)
 			map.create();
@@ -583,7 +616,6 @@ var Opponents = function(opponentNb) {
 					self.opponents[i].move();
 					if (fogOpponentsMode)
 						map.lightSurroundingPlayer(i);
-					self.opponents[i].checkHealth();
 				}
 			}
 		}
@@ -598,7 +630,7 @@ var Opponent = function (id,coordinates){
 
 	var self = this;
 
-	self.init(id,coordinates,100,100,false);
+	self.init(id,coordinates,100,100,100,false);
 
     this.move = function(){
 		var direction = getRandom(0,8);
@@ -619,7 +651,7 @@ var Opponent = function (id,coordinates){
 		y = Math.min(map.mapH-1,Math.max(0,y));
 		self.coordinates.x = x;
 		self.coordinates.y = y;
-		self.updateFood(0.2);
+		self.updatePlayer(0.2);
     }
 }
 
@@ -670,6 +702,8 @@ $(document).ready(function() {
 		map.tick();
 
 		var ui = new Ui();
+
+		map.$map.removeClass("hide");
 		
 		return false;
 	});
