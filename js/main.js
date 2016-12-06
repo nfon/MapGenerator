@@ -1,4 +1,5 @@
 var map;
+var genericItems;
 var debugMode = false;
 
 function clearMessage() {
@@ -468,17 +469,47 @@ var Ui = function() {
 	this.tick();
 }
 
-var Item = function() {
-	this.id;
-	this.weight;
-    this.name;
-    var self = this;
+var GenericItems = function() {
+	this.genericItems = new Array();
+	var self = this;
 
-    this.init = function(id,weight,name) {
-    	self.id = id;
-    	self.weight = weight;
-    	self.name = name;
-    }
+	this.generate = function() {
+		self.genericItems.push(new GenericItem(0,1,"spear"));
+		self.genericItems.push(new GenericItem(1,1,"medipack"));
+	}
+	this.generate();
+}
+
+var GenericItem = function(id,weight,name) {
+	this.id = id;
+	this.weight = weight;
+    this.name = name;
+    var self = this;
+}
+
+var Items = function(itemNb) {
+	this.itemNb = itemNb;
+	this.items = new Array();
+	var self = this;
+
+	this.generate = function() {
+		for (var i=0; i<self.itemNb; i++) {
+			var x = getRandom(0,map.mapH-1);
+			var y = getRandom(0,map.mapL-1);
+			var o = getRandom(0,genericItems.genericItems.length);
+			self.items[i] = new Item($.extend(true, [], genericItems.genericItems[o]),{x:x,y:y},false);
+		}
+	}
+	this.generate();
+}
+
+var Item = function(genItem,coordinates,grabbed) {
+	this.id = genItem.id;
+	this.name = genItem.name;
+	this.weight = genItem.weight;
+	this.coordinates = coordinates;
+    this.grabbed = grabbed;
+    var self = this;
 }
 
 var Player = function() {
@@ -709,6 +740,9 @@ $(document).ready(function() {
 
 		map = new Map(mapL,mapH,heightMin,heightMax,summitNb,lakeNb,riverNb,fogMode,fogOpponentsMode);
 		map.create();
+
+		genericItems = new GenericItems();
+		items = new Items(10);
 
 		Opponent.prototype = Object.create(Player.prototype); 
 		Opponent.prototype.constructor = Player;
