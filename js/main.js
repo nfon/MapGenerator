@@ -468,24 +468,49 @@ var Ui = function() {
 	this.tick();
 }
 
+var Item = function() {
+	this.id;
+	this.weight;
+    this.name;
+    var self = this;
+
+    this.init = function(id,weight,name) {
+    	self.id = id;
+    	self.weight = weight;
+    	self.name = name;
+    }
+}
+
 var Player = function() {
 	this.id;
     this.coordinates;
     this.food;
     this.water;
+    this.weight;
     this.health;
     this.map;
+    this.inventory = [];
     this.follow = false;
     var self = this;
 
-    this.init = function(id,coordinates,food,water,health,follow) {
+    this.init = function(id,coordinates,food,water,weight,health,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.food = food;
     	self.water = water;
+    	self.weight = weight;
     	self.health = health;
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
+    }
+
+    this.getItem = function(item) {
+    	self.inventory.push(item);
+    	self.updateWeight(item.weight);
+    }
+
+    this.updateWeight = function(weight) {
+    	self.weight+=weight;
     }
 
     this.updatePlayer = function(coef) {
@@ -518,7 +543,7 @@ var Hero = function(coordinates) {
 
 	var self = this;
 
-	self.init(99,coordinates,100,100,100,true);
+	self.init(99,coordinates,100,100,100,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -630,7 +655,7 @@ var Opponent = function (id,coordinates){
 
 	var self = this;
 
-	self.init(id,coordinates,100,100,100,false);
+	self.init(id,coordinates,100,100,100,100,false);
 
     this.move = function(){
 		var direction = getRandom(0,8);
