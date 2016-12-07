@@ -734,7 +734,7 @@ var Opponents = function(opponentNb) {
 			self.lastOpponentMove = Date.now();
 			for (var i=0; i<self.opponentNb; i++) {
 				if (self.opponents[i].health) {
-					if (self.opponents[i].food < 50)
+					if (self.opponents[i].food < 50 && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0)
 						self.opponents[i].eat();
 					else {
 						self.opponents[i].move();
