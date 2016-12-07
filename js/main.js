@@ -40,8 +40,6 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.fogMode = fogMode;
 	this.fogOpponentsMode = fogOpponentsMode;
-	this.coefLightSize = 2;
-
 	this.initialized = true;
 
 	this.ticker;
@@ -284,7 +282,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var x = player.coordinates.x;
 		var y = player.coordinates.y;
 
-		var lightSize=self.map[x][y].altitude*self.coefLightSize;
+		var lightSize=self.map[x][y].altitude*player.vision;
 		for (var i=(x-(lightSize+2));i<=(x+lightSize+2);i++) {
 			for (var j=(y-(lightSize+2));j<=(y+lightSize+2);j++) {
 				if (i>=0 && i<self.mapL) {
@@ -313,7 +311,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 				discovery+=hero.map[i][j].opacity;
 			}
 		}
-	    $("#discovery").text( Math.round( (discovery/self.map.length) * 100)/100+"% discovered");
+	    $("#discovery").text( round( (discovery/self.map.length),2)+"% discovered");
 	}
 
 	this.draw = function() {
@@ -490,6 +488,7 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:20},{property:"range",type:"permanent",value:2}],1,"spear"));
 		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:100}],1,"medipack"));
 		self.genericItems.push(new GenericItem(i++,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
+		self.genericItems.push(new GenericItem(i++,[{property:"vision",type:"permanent",value:3}],1,"binocular"));
 		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:30},{property:"range",type:"permanent",value:10}],3,"bow"));
 		self.genericItems.push(new GenericItem(i++,[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
 		self.genericItems.push(new GenericItem(i++,[{property:"waterMax",type:"permanent",value:150}],2,"water skin"));
@@ -545,6 +544,7 @@ var Item = function(item,coordinates,grabbed) {
 var Player = function() {
 	this.id;
     this.coordinates;
+    this.vision;
     this.attack;
     this.range;
     this.food;
@@ -560,9 +560,10 @@ var Player = function() {
     this.follow = true;
     var self = this;
 
-    this.init = function(id,coordinates,attack,range,food,water,weight,health,follow) {
+    this.init = function(id,coordinates,vision,attack,range,food,water,weight,health,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
+    	self.vision = vision;
     	self.attack = attack;
     	self.range = range;
     	self.food = food;
@@ -606,12 +607,12 @@ var Player = function() {
 
     this.checkHealth = function() {
     	if (self.food<5)
-    		self.health = Math.max(0,self.health-0.1);
+    		self.health = Math.max(0,round(self.health-0.1,2));
     	if (self.food == 0)
-    		self.health = Math.max(0,self.health-0.5);
+    		self.health = Math.max(0,round(self.health-0.5,2));
 
     	if (self.water==0)
-    		self.health = Math.max(0,self.health-0.1);
+    		self.health = Math.max(0,round(self.health-0.1,2));
     }
 }
 
@@ -625,7 +626,7 @@ var Hero = function(coordinates) {
 
 	var self = this;
 
-	self.init(99,coordinates,10,1,100,100,100,100,true);
+	self.init(99,coordinates,2,10,1,100,100,100,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -737,7 +738,7 @@ var Opponent = function (id,coordinates){
 
 	var self = this;
 
-	self.init(id,coordinates,10,1,100,100,100,100,true);
+	self.init(id,coordinates,2,10,1,100,100,100,100,true);
 
     this.move = function(){
 		var direction = getRandom(0,8);
