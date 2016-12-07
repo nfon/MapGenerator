@@ -412,11 +412,12 @@ var Ui = function() {
 				player=opponents.opponents[i];
 			
 	    	if (self.$tracker.find("#id_"+player.id).length == 0)
-	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>food:<span class='food'></span><br/>water:<span class='water'></span><br/>weight:<span class='weight'></span><br/>health:<span class='health'></span><br/>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
+	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<span class='food'></span><br/>water:<span class='water'></span><br/>weight:<span class='weight'></span><br/>health:<span class='health'></span><br/>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
 	    	$playerTracker.find(".attack").text(player.attack);
+	    	$playerTracker.find(".range").text(player.range);
 	    	$playerTracker.find(".food").text(player.food);
 	    	$playerTracker.find(".water").text(player.water);
 	    	$playerTracker.find(".weight").text(player.weight);
@@ -481,19 +482,17 @@ var GenericItems = function() {
 	var self = this;
 
 	this.generate = function() {
-		self.genericItems.push(new GenericItem(0,"attack","permanent",20,1,"spear"));
-		self.genericItems.push(new GenericItem(1,"health","use",100,1,"medipack"));
-		self.genericItems.push(new GenericItem(2,"healthMax","permanent",150,1,"armour"));
+		self.genericItems.push(new GenericItem(0,[{property:"attack",type:"permanent",value:20},{property:"range",type:"permanent",value:2}],1,"spear"));
+		self.genericItems.push(new GenericItem(1,[{property:"health",type:"use",value:100}],1,"medipack"));
+		self.genericItems.push(new GenericItem(2,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
 
 	}
 	this.generate();
 }
 
-var GenericItem = function(id,property,type,value,weight,name) {
+var GenericItem = function(id,specs,weight,name) {
 	this.id = id;
-    this.property = property;
-    this.type = type;
-    this.value = value;
+	this.specs = $.extend(true, [], specs);;
 	this.weight = weight;
     this.name = name;
     var self = this;
@@ -527,9 +526,7 @@ var Items = function(itemNb) {
 
 var Item = function(item,coordinates,grabbed) {
 	this.id = item.id;
-	this.property = item.property;
-    this.type = item.type;
-    this.value = item.value;
+	this.specs = $.extend(true, [], item.specs);
 	this.name = item.name;
 	this.weight = item.weight;
 	this.coordinates = coordinates;
@@ -541,6 +538,7 @@ var Player = function() {
 	this.id;
     this.coordinates;
     this.attack;
+    this.range;
     this.food;
     this.water;
     this.weight;
@@ -551,10 +549,11 @@ var Player = function() {
     this.follow = true;
     var self = this;
 
-    this.init = function(id,coordinates,attack,food,water,weight,health,follow) {
+    this.init = function(id,coordinates,attack,range,food,water,weight,health,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.attack = attack;
+    	self.range = range;
     	self.food = food;
     	self.water = water;
     	self.weight = weight;
@@ -568,8 +567,11 @@ var Player = function() {
     	if (item) {
     		self.inventory.push(item);
     		self.updateWeight(item.weight);
-    		if (item.type=="permanent") {
-    			self[item.property] = Math.max(self[item.property],item.value);
+    		for (i in item.specs) {
+    			var spec = item.specs[i];
+    			if (spec.type=="permanent") {
+    				self[spec.property] = Math.max(self[spec.property],spec.value);
+    			}
     		}
     	}
     }
@@ -609,7 +611,7 @@ var Hero = function(coordinates) {
 
 	var self = this;
 
-	self.init(99,coordinates,10,100,100,100,100,true);
+	self.init(99,coordinates,10,1,100,100,100,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -721,7 +723,7 @@ var Opponent = function (id,coordinates){
 
 	var self = this;
 
-	self.init(id,coordinates,10,100,100,100,100,true);
+	self.init(id,coordinates,10,1,100,100,100,100,true);
 
     this.move = function(){
 		var direction = getRandom(0,8);
