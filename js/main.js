@@ -466,7 +466,6 @@ var Ui = function() {
 	}
 
 	this.tick = function() {
-		//delay
 		var delay = 1000;
 		if (Date.now()-self.last>delay) {
 			self.last = Date.now();
@@ -491,8 +490,8 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,[{property:"vision",type:"permanent",value:3}],1,"binocular"));
 		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:30},{property:"range",type:"permanent",value:10}],3,"bow"));
 		self.genericItems.push(new GenericItem(i++,[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
-		self.genericItems.push(new GenericItem(i++,[{property:"waterMax",type:"permanent",value:150}],2,"water skin"));
-		self.genericItems.push(new GenericItem(i++,[{property:"foodMax",type:"permanent",value:150}],2,"plastic tub"));
+		self.genericItems.push(new GenericItem(i++,[{property:"waterMax",type:"cumul",value:50}],2,"water skin"));
+		self.genericItems.push(new GenericItem(i++,[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));//if a player get 2 time this item, only one will count...
 	}
 	this.generate();
 }
@@ -577,6 +576,8 @@ var Player = function() {
     	self.healthMax = health;
     	this.gathering = gathering;
     	//this.accuracy;
+    	//this.foodLimit;
+    	//this.waterLimit;
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
     }
@@ -589,6 +590,9 @@ var Player = function() {
     			var spec = item.specs[i];
     			if (spec.type=="permanent") {
     				self[spec.property] = Math.max(self[spec.property],spec.value);
+    			}
+    			if (spec.type=="cumul") {
+    				self[spec.property] += spec.value;
     			}
     		}
     	}
