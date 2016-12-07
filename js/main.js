@@ -555,12 +555,13 @@ var Player = function() {
     this.weightMax;
     this.health;
     this.healthMax;
+    this.gathering;
     this.map;
     this.inventory = [];
     this.follow = true;
     var self = this;
 
-    this.init = function(id,coordinates,vision,attack,range,food,water,weight,health,follow) {
+    this.init = function(id,coordinates,vision,attack,range,food,water,weight,health,gathering,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.vision = vision;
@@ -574,6 +575,8 @@ var Player = function() {
     	self.weightMax = weight;
     	self.health = health;
     	self.healthMax = health;
+    	this.gathering = gathering;
+    	//this.accuracy;
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
     }
@@ -600,9 +603,16 @@ var Player = function() {
     	if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
     		self.water=Math.max(0,round(self.water-coef,2));
     	else
-    		self.water=Math.min(100,round(self.water+5,2));
+    		self.water=Math.min(self.waterMax,round(self.water+5,2));
     	self.checkHealth();
     	self.getItem(items.hasItem(self.coordinates));
+    }
+
+    this.eat = function() {
+    	var foodAvailable = map.map[self.coordinates.x][self.coordinates.y].food;
+    	var foodTaken = round(foodAvailable*self.gathering,2);
+    	map.map[self.coordinates.x][self.coordinates.y].food-=foodTaken;
+    	self.food=Math.min(self.foodMax,self.food+foodTaken);
     }
 
     this.checkHealth = function() {
@@ -626,7 +636,7 @@ var Hero = function(coordinates) {
 
 	var self = this;
 
-	self.init(99,coordinates,2,10,1,100,100,100,100,true);
+	self.init(99,coordinates,2,10,1,100,100,100,100,1,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -653,7 +663,10 @@ var Hero = function(coordinates) {
 			if (self.keydown != -1 && map && map.initialized && self.health)
 				self.move(self.keydown-37);
 			else
+			{
+				self.eat();
 				self.updatePlayer(0.1);
+			}
 		}
 		self.ticker = requestAnimationFrame(self.tick);
 	}
@@ -721,9 +734,13 @@ var Opponents = function(opponentNb) {
 			self.lastOpponentMove = Date.now();
 			for (var i=0; i<self.opponentNb; i++) {
 				if (self.opponents[i].health) {
-					self.opponents[i].move();
-					if (fogOpponentsMode)
-						map.lightSurroundingPlayer(i);
+					if (self.opponents[i].food < 50)
+						self.opponents[i].eat();
+					else {
+						self.opponents[i].move();
+						if (fogOpponentsMode)
+							map.lightSurroundingPlayer(i);
+					}
 				}
 			}
 		}
@@ -733,14 +750,14 @@ var Opponents = function(opponentNb) {
 	this.generate();
 }
 
-var Opponent = function (id,coordinates){
+var Opponent = function (id,coordinates) {
 	Player.call(this);
 
 	var self = this;
 
-	self.init(id,coordinates,2,10,1,100,100,100,100,true);
+	self.init(id,coordinates,2,10,1,100,100,100,100,1,true);
 
-    this.move = function(){
+    this.move = function() {
 		var direction = getRandom(0,8);
 		var x = self.coordinates.x;
 		var y = self.coordinates.y;
