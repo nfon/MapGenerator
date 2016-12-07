@@ -21,6 +21,10 @@ function getRandomNormal(min, max) {
 	return Math.min(max,Math.max(min,Math.floor(chance.normal({mean: ((min+max)/2), dev: ((min+max)/4)}))));
 }
 
+function round(number,dec) {
+	return Math.round(number*Math.pow(10,dec))/Math.pow(10,dec);
+}
+
 var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode){
 	this.$map = $("#map");
 	this.$canvas = this.$map.find("canvas");
@@ -418,9 +422,9 @@ var Ui = function() {
 	    	$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
 	    	$playerTracker.find(".attack").text(player.attack);
 	    	$playerTracker.find(".range").text(player.range);
-	    	$playerTracker.find(".food").text(player.food);
-	    	$playerTracker.find(".water").text(player.water);
-	    	$playerTracker.find(".weight").text(player.weight);
+	    	$playerTracker.find(".food").text(player.food+"/"+player.foodMax);
+	    	$playerTracker.find(".water").text(player.water+"/"+player.waterMax);
+	    	$playerTracker.find(".weight").text(player.weight+"/"+player.weightMax);
 	    	$playerTracker.find(".health").text(player.health+"/"+player.healthMax);
 	    	var inventory = "";
 	    	for (o in player.inventory) {
@@ -482,10 +486,14 @@ var GenericItems = function() {
 	var self = this;
 
 	this.generate = function() {
-		self.genericItems.push(new GenericItem(0,[{property:"attack",type:"permanent",value:20},{property:"range",type:"permanent",value:2}],1,"spear"));
-		self.genericItems.push(new GenericItem(1,[{property:"health",type:"use",value:100}],1,"medipack"));
-		self.genericItems.push(new GenericItem(2,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
-
+		var i = 0;
+		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:20},{property:"range",type:"permanent",value:2}],1,"spear"));
+		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:100}],1,"medipack"));
+		self.genericItems.push(new GenericItem(i++,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
+		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:30},{property:"range",type:"permanent",value:10}],3,"bow"));
+		self.genericItems.push(new GenericItem(i++,[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
+		self.genericItems.push(new GenericItem(i++,[{property:"waterMax",type:"permanent",value:150}],2,"water skin"));
+		self.genericItems.push(new GenericItem(i++,[{property:"foodMax",type:"permanent",value:150}],2,"plastic tub"));
 	}
 	this.generate();
 }
@@ -540,8 +548,11 @@ var Player = function() {
     this.attack;
     this.range;
     this.food;
+    this.foodMax;
     this.water;
+    this.waterMax;
     this.weight;
+    this.weightMax;
     this.health;
     this.healthMax;
     this.map;
@@ -555,8 +566,11 @@ var Player = function() {
     	self.attack = attack;
     	self.range = range;
     	self.food = food;
+    	self.foodMax = food;
     	self.water = water;
-    	self.weight = weight;
+    	self.waterMax = water;
+    	self.weight = 0;
+    	self.weightMax = weight;
     	self.health = health;
     	self.healthMax = health;
     	self.follow = follow;
@@ -581,11 +595,11 @@ var Player = function() {
     }
 
     this.updatePlayer = function(coef) {
-    	self.food=Math.max(0,self.food-(coef*map.map[self.coordinates.x][self.coordinates.y].altitude));
+    	self.food=Math.max(0,round(self.food-round(coef*map.map[self.coordinates.x][self.coordinates.y].altitude,2),2));
     	if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
-    		self.water=Math.max(0,self.water-coef);
+    		self.water=Math.max(0,round(self.water-coef,2));
     	else
-    		self.water=Math.min(100,self.water+5);
+    		self.water=Math.min(100,round(self.water+5,2));
     	self.checkHealth();
     	self.getItem(items.hasItem(self.coordinates));
     }
