@@ -610,11 +610,13 @@ var Player = function() {
 
     this.useItem = function(id) {
     	var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
+    	console.log(id);
+    	console.log(self.inventory);
+    	console.log(item);
     	for (i in item.specs) {
 			var spec = item.specs[i];
-			if (spec.type=="use") {
-				self[spec.property] += Math.min(self[spec.property+"Max"],self[spec.property]+spec.value);
-			}
+			if (spec.type=="use")
+				self[spec.property] = Math.min(self[spec.property+"Max"],self[spec.property]+spec.value);
 		}
 		self.updateWeight(-item.weight);
 		self.inventory.pop(item);
@@ -642,6 +644,7 @@ var Player = function() {
     }
 
     this.drink = function() {
+    	console.log(self.id+" drink");
     	self.water=self.waterMax;
     }
 
