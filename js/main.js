@@ -560,41 +560,43 @@ var Player = function() {
     this.follow = true;
     var self = this;
 
-    this.init = function(id,coordinates,vision,attack,range,food,water,weight,health,gathering,follow) {
+    this.init = function(id,coordinates,vision,attack,accuracy,range,food,foodLimit,water,waterLimit,weight,health,gathering,follow) {
     	self.id = id;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.vision = vision;
     	self.attack = attack;
+    	self.accuracy = accuracy;
     	self.range = range;
     	self.food = food;
     	self.foodMax = food;
+    	self.foodLimit = foodLimit;
     	self.water = water;
+    	self.waterLimit = waterLimit;
     	self.waterMax = water;
     	self.weight = 0;
     	self.weightMax = weight;
     	self.health = health;
     	self.healthMax = health;
     	this.gathering = gathering;
-    	//this.accuracy;
-    	//this.foodLimit;
-    	//this.waterLimit;
     	self.follow = follow;
     	self.map = $.extend(true, [], map.map);
     }
 
     this.getItem = function(item) {
     	if (item) {
-    		self.inventory.push(item);
-    		self.updateWeight(item.weight);
-    		for (i in item.specs) {
-    			var spec = item.specs[i];
-    			if (spec.type=="permanent") {
-    				self[spec.property] = Math.max(self[spec.property],spec.value);
-    			}
-    			if (spec.type=="cumul") {
-    				self[spec.property] += spec.value;
-    			}
-    		}
+    		if (item.weight+self.weight<=self.weightMax) {
+	    		self.inventory.push(item);
+	    		self.updateWeight(item.weight);
+	    		for (i in item.specs) {
+	    			var spec = item.specs[i];
+	    			if (spec.type=="permanent") {
+	    				self[spec.property] = Math.max(self[spec.property],spec.value);
+	    			}
+	    			if (spec.type=="cumul") {
+	    				self[spec.property] += spec.value;
+	    			}
+	    		}
+	    	}
     	}
     }
 
@@ -603,21 +605,26 @@ var Player = function() {
     }
 
     this.updatePlayer = function(coef) {
-    	self.food=Math.max(0,round(self.food-round(coef*map.map[self.coordinates.x][self.coordinates.y].altitude,2),2));
-    	if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
-    		self.water=Math.max(0,round(self.water-coef,2));
-    	else
-    		self.water=Math.min(self.waterMax,round(self.water+5,2));
-    	self.checkHealth();
-    	self.getItem(items.hasItem(self.coordinates));
+    	if (self.health) {
+    		self.food=Math.max(0,round(self.food-round(coef*map.map[self.coordinates.x][self.coordinates.y].altitude,2),2));
+    		if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
+	    		self.water=Math.max(0,round(self.water-coef,2));
+    		self.checkHealth();
+    		self.getItem(items.hasItem(self.coordinates));
+    	}
     }
 
     this.eat = function() {
     	var foodAvailable = map.map[self.coordinates.x][self.coordinates.y].food;
     	var foodTaken = round(foodAvailable*self.gathering,2);
-    	map.map[self.coordinates.x][self.coordinates.y].food-=foodTaken;
+    	map.map[self.coordinates.x][self.coordinates.y].food=Math.max(0,foodAvailable-foodTaken);
     	self.food=Math.min(self.foodMax,self.food+foodTaken);
     }
+
+    this.drink = function() {
+    	self.water=self.waterMax;
+    }
+
 
     this.checkHealth = function() {
     	if (self.food<5)
@@ -639,8 +646,7 @@ var Hero = function(coordinates) {
 	this.ticker;
 
 	var self = this;
-
-	self.init(99,coordinates,2,10,1,100,100,100,100,1,true);
+	self.init(99,coordinates,2,10,0.3,1,100,20,100,20,20,100,1,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -738,12 +744,16 @@ var Opponents = function(opponentNb) {
 			self.lastOpponentMove = Date.now();
 			for (var i=0; i<self.opponentNb; i++) {
 				if (self.opponents[i].health) {
-					if (self.opponents[i].food < 50 && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0)
+					if (self.opponents[i].food < self.opponents[i].foodLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0)
 						self.opponents[i].eat();
 					else {
-						self.opponents[i].move();
-						if (fogOpponentsMode)
-							map.lightSurroundingPlayer(i);
+						if (self.opponents[i].water < self.opponents[i].waterLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0)
+							self.opponents[i].drink();
+						else {
+							self.opponents[i].move();
+							if (fogOpponentsMode)
+								map.lightSurroundingPlayer(i);
+						}
 					}
 				}
 			}
@@ -758,8 +768,7 @@ var Opponent = function (id,coordinates) {
 	Player.call(this);
 
 	var self = this;
-
-	self.init(id,coordinates,2,10,1,100,100,100,100,1,true);
+	self.init(id,coordinates,2,10,0.3,1,100,20,100,20,20,100,1,true);
 
     this.move = function() {
 		var direction = getRandom(0,8);
