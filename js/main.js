@@ -487,13 +487,13 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:50}],1,"small medipack"));
 		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:100}],1.5,"medipack"));
 		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:200}],2,"large medipack"));
-		self.genericItems.push(new GenericItem(i++,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));/*
+		self.genericItems.push(new GenericItem(i++,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
 		self.genericItems.push(new GenericItem(i++,[{property:"vision",type:"permanent",value:3}],1,"binocular"));
 		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:20},{property:"range",type:"permanent",value:2}],1,"spear"));
 		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:30},{property:"range",type:"permanent",value:10}],3,"bow"));
 		self.genericItems.push(new GenericItem(i++,[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
 		self.genericItems.push(new GenericItem(i++,[{property:"waterMax",type:"cumul",value:50}],2,"water skin"));
-		self.genericItems.push(new GenericItem(i++,[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));*/
+		self.genericItems.push(new GenericItem(i++,[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));
 	}
 	this.generate();
 }
@@ -604,15 +604,14 @@ var Player = function() {
     }
 
     this.hasItem = function(id) {
-    	var result = $.grep(self.inventory, function(e){ return e.id == id; });
+    	var result = [];
+    	if (self.inventory.length)
+    		result = $.grep(self.inventory, function(e){ return e.id == id; });
     	return result.length;
     }
 
     this.useItem = function(id) {
     	var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
-    	console.log(id);
-    	console.log(self.inventory);
-    	console.log(item);
     	for (i in item.specs) {
 			var spec = item.specs[i];
 			if (spec.type=="use")
@@ -644,17 +643,16 @@ var Player = function() {
     }
 
     this.drink = function() {
-    	console.log(self.id+" drink");
     	self.water=self.waterMax;
     }
 
 
     this.checkHealth = function() {
-    	if (self.hasItem(0) && self.health<self.healthMax-50  || self.health < self.healthLimit)
+    	if (self.hasItem(0) && (self.health<self.healthMax-50  || self.health < self.healthLimit) )
     		self.useItem(0);
-    	if (self.hasItem(1) && self.health<self.healthMax-100 || self.health < self.healthLimit)
+    	if (self.hasItem(1) && (self.health<self.healthMax-100 || self.health < self.healthLimit) )
     		self.useItem(1);
-    	if (self.hasItem(2) && self.health<self.healthMax-200 || self.health < self.healthLimit)
+    	if (self.hasItem(2) && (self.health<self.healthMax-200 || self.health < self.healthLimit) )
     		self.useItem(2);
     	if (self.food<5)
     		self.health = Math.max(0,round(self.health-0.1,2));
