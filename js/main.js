@@ -25,6 +25,10 @@ function round(number,dec) {
 	return Math.round(number*Math.pow(10,dec))/Math.pow(10,dec);
 }
 
+function getDistance(coordinates1,coordinates2) {
+	return Math.sqrt( Math.pow((coordinates2.x-coordinates1.x),2) + Math.pow((coordinates2.y-coordinates1.y),2) );
+}
+
 var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode){
 	this.$map = $("#map");
 	this.$canvas = this.$map.find("canvas");
@@ -108,15 +112,11 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var mountainSizeYMin=getRandomNormal(0,5);
 		var mountainSizeYMax=getRandomNormal(0,5);
 
-		for (var j=(x-mountainSizeXMin);j<=(x+mountainSizeXMax);j++) {
-			for (var i=(y-mountainSizeYMin);i<=(y+mountainSizeYMax);i++) {
-				if (i>=0 && i<self.mapH) {
-					if (j>=0 && j<self.mapL) {
-						if (x!=j || y!=i) {
-							if (self.map[i][j].altitude<val) {
-								self.map[i][j].altitude=getRandomNormal(val+1,val-1);
-							}
-						}
+		for (var j=Math.max(0,(x-mountainSizeXMin));j<=Math.min(self.mapL-1,(x+mountainSizeXMax));j++) {
+			for (var i=Math.max(0,(y-mountainSizeYMin));i<=Math.min(self.mapH-1,(y+mountainSizeYMax));i++) {
+				if (x!=j || y!=i) {
+					if (self.map[i][j].altitude<val) {
+						self.map[i][j].altitude=getRandomNormal(val+1,val-1);
 					}
 				}
 			}
@@ -156,16 +156,11 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var riverSizeXMax=getRandomNormal(0,3);
 		var riverSizeYMin=getRandomNormal(0,4);
 		var riverSizeYMax=getRandomNormal(0,3);
-		for (var j=(x-riverSizeXMin);j<=(x+riverSizeXMax);j++) {
-			for (var i=(y-riverSizeYMin);i<=(y+riverSizeYMax);i++) {
-				if (i>=0 && i<self.mapH) {
-					if (j>=0 && j<self.mapL) {
-						if (x!=j || y!=i) {
-							if (self.map[i][j].altitude<=val) {
-								self.map[i][j].type=0;
-							}
-						}
-					}
+		for (var j=Math.max(0,(x-riverSizeXMin));j<=Math.min(self.mapL-1,(x+riverSizeXMax));j++) {
+			for (var i=Math.max(0,(y-riverSizeYMin));i<=Math.min(self.mapH-1,(y+riverSizeYMax));i++) {
+				if (x!=j || y!=i) {
+					if (self.map[i][j].altitude<=val)
+						self.map[i][j].type=0;
 				}
 			}
 		}
@@ -250,7 +245,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			if ( ( /*self.map[i][j]<0 ||*/ i==0 || i==mapH-1 || j==0 || j==self.mapL-1 ) && length > 5 )
 				inside=false;
 			
-			if( self.map[i][j].type != 0 ) {
+			if ( self.map[i][j].type != 0 ) {
 				length++;
 				if (self.map[i][j].altitude<=curHeight) {
 					safety=0;
@@ -282,24 +277,20 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var x = player.coordinates.x;
 		var y = player.coordinates.y;
 
-		var lightSize=self.map[x][y].altitude*player.vision;
-		for (var i=(x-(lightSize+2));i<=(x+lightSize+2);i++) {
-			for (var j=(y-(lightSize+2));j<=(y+lightSize+2);j++) {
-				if (i>=0 && i<self.mapL) {
-					if (j>=0 && j<self.mapH) {
-						var powX = Math.pow(i-x,2);
-						var powY = Math.pow(j-y,2);
-						var opacity = player.map[i][j].opacity;
-						if ( powX + powY <= Math.pow(lightSize+2,2) && player.map[i][j].opacity<0.3 )
-							opacity=0.3;
-						if ( powX + powY <= Math.pow(lightSize+1,2) && player.map[i][j].opacity<0.5 )
-							opacity=0.5;
-						if ( powX + powY < Math.pow(lightSize,2) )
-							opacity=1;
+		var lightSize = self.map[x][y].altitude*player.vision;
+		for (var i=Math.max(0,(x-(lightSize+2)));i<=Math.min(self.mapL-1,(x+lightSize+2));i++) {
+			for (var j=Math.max(0,(y-(lightSize+2)));j<=Math.min(self.mapH-1,(y+lightSize+2));j++) {
+				var powX = Math.pow(i-x,2);
+				var powY = Math.pow(j-y,2);
+				var opacity = player.map[i][j].opacity;
+				if ( powX + powY <= Math.pow(lightSize+2,2) && player.map[i][j].opacity<0.3 )
+					opacity=0.3;
+				if ( powX + powY <= Math.pow(lightSize+1,2) && player.map[i][j].opacity<0.5 )
+					opacity=0.5;
+				if ( powX + powY < Math.pow(lightSize,2) )
+					opacity=1;
 
-						player.map[i][j].opacity=opacity;
-					}
-				}
+				player.map[i][j].opacity=opacity;
 			}
 		}
 	}
@@ -484,22 +475,26 @@ var GenericItems = function() {
 
 	this.generate = function() {
 		var i = 0;
-		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:50}],1,"small medipack"));
-		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:100}],1.5,"medipack"));
-		self.genericItems.push(new GenericItem(i++,[{property:"health",type:"use",value:200}],2,"large medipack"));
-		self.genericItems.push(new GenericItem(i++,[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
-		self.genericItems.push(new GenericItem(i++,[{property:"vision",type:"permanent",value:3}],1,"binocular"));
-		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:20},{property:"range",type:"permanent",value:2}],1,"spear"));
-		self.genericItems.push(new GenericItem(i++,[{property:"attack",type:"permanent",value:30},{property:"range",type:"permanent",value:10}],3,"bow"));
-		self.genericItems.push(new GenericItem(i++,[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
-		self.genericItems.push(new GenericItem(i++,[{property:"waterMax",type:"cumul",value:50}],2,"water skin"));
-		self.genericItems.push(new GenericItem(i++,[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));
+		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:50}],1,"small medipack"));
+		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:100}],1.5,"medipack"));
+		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:200}],2,"large medipack"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:20,range:2,accuracy:1},1,"spear"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:10,accuracy:0.6},3,"bow"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:40,range:7,accuracy:0.8},0.5,"gun"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:70,range:3,accuracy:0.2},3,"shotgun"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:50,range:20,accuracy:0.8},4,"longneck"));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular"));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin"));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));
 	}
 	this.generate();
 }
 
-var GenericItem = function(id,specs,weight,name) {
+var GenericItem = function(id,type,specs,weight,name) {
 	this.id = id;
+	this.type = type;
 	this.specs = $.extend(true, [], specs);;
 	this.weight = weight;
     this.name = name;
@@ -521,7 +516,7 @@ var Items = function(itemNb) {
 	}
 
 	this.hasItem = function(coordinates) {
-		for (i in items.items) {
+		for (var i in items.items) {
 			if (items.items[i].coordinates.x == coordinates.x && items.items[i].coordinates.y == coordinates.y && !items.items[i].grabbed) {
 				items.items[i].grabbed = true;
 				return items.items[i];
@@ -534,6 +529,7 @@ var Items = function(itemNb) {
 
 var Item = function(item,coordinates,grabbed) {
 	this.id = item.id;
+	this.type = item.type;
 	this.specs = $.extend(true, [], item.specs);
 	this.name = item.name;
 	this.weight = item.weight;
@@ -585,20 +581,26 @@ var Player = function() {
     	self.map = $.extend(true, [], map.map);
     }
 
+    this.setPosition = function(x,y) {
+    	self.coordinates={x:x,y:y};
+    }
+
     this.getItem = function(item) {
     	if (item) {
     		if (item.weight+self.weight<=self.weightMax) {
 	    		self.inventory.push(item);
 	    		self.updateWeight(item.weight);
-	    		for (i in item.specs) {
-	    			var spec = item.specs[i];
-	    			if (spec.type=="permanent") {
-	    				self[spec.property] = Math.max(self[spec.property],spec.value);
-	    			}
-	    			if (spec.type=="cumul") {
-	    				self[spec.property] += spec.value;
-	    			}
-	    		}
+	    		if (item.type=="object") {
+		    		for (var i in item.specs) {
+		    			var spec = item.specs[i];
+		    			if (spec.type=="permanent") {
+		    				self[spec.property] = Math.max(self[spec.property],spec.value);
+		    			}
+		    			if (spec.type=="cumul") {
+		    				self[spec.property] += spec.value;
+		    			}
+		    		}
+		    	}
 	    	}
     	}
     }
@@ -612,7 +614,7 @@ var Player = function() {
 
     this.useItem = function(id) {
     	var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
-    	for (i in item.specs) {
+    	for (var i in item.specs) {
 			var spec = item.specs[i];
 			if (spec.type=="use")
 				self[spec.property] = Math.min(self[spec.property+"Max"],self[spec.property]+spec.value);
@@ -633,6 +635,68 @@ var Player = function() {
     		self.checkHealth();
     		self.getItem(items.hasItem(self.coordinates));
     	}
+    }
+
+    this.checkSurroundings = function() {
+
+    	var x = self.coordinates.x;
+		var y = self.coordinates.y;
+		var range = map.map[x][y].altitude*self.vision;
+
+		var closedOpponents = [];
+		
+		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
+			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
+				var powX = Math.pow(i-x,2);
+				var powY = Math.pow(j-y,2);
+				if ( powX + powY < Math.pow(range,2) ) {
+					for (var o=-1;o<opponents.opponentNb;o++) {
+						var player;
+						if (o==-1)
+							player=hero;
+						else
+							player=opponents.opponents[o];
+
+						if (player.id != self.id) {
+							if (player.coordinates.x == i && player.coordinates.y == j)
+								closedOpponents.push({player:player,distance:getDistance(player.coordinates,self.coordinates)});
+						}
+					}							
+				}
+			}
+		}
+
+
+		closedOpponents.sort(function(a, b) {
+		    return a.distance - b.distance;
+		});
+
+		if (closedOpponents.length) {
+			var attack = self.attack;
+	    	var range = self.range;
+	    	var damage = round(self.attack*self.accuracy*self.range/closedOpponents[0].distance,2);
+	    	var bestWeapon = {name:"fist"};
+
+	    	for (var i in self.inventory) {
+	    		var item = self.inventory[i];
+	    		if (item.type=="weapon") {
+	    			if (item.specs.range <= closedOpponents[0].distance) {
+		    			var tempAttack = item.specs.attack;
+		    			var tempRange = item.specs.range;
+		    			var tempAccuracy = item.specs.accuracy;
+		    			var tempDamage = 0;
+
+		    			tempDamage = tempAttack*tempAccuracy*(tempRange/closedOpponents[0].distance);
+		    			if (tempDamage>damage) {
+		    				damage = round(tempDamage,2);
+		    				bestWeapon = item;
+		    			}
+	    			}
+				}
+			}
+			console.log(self.id+" use "+bestWeapon.name+" on "+closedOpponents[0].player.id+" and cause "+damage);
+			closedOpponents[0].player.health -= damage;
+		}
     }
 
     this.eat = function() {
@@ -707,6 +771,7 @@ var Hero = function(coordinates) {
 
 				self.updatePlayer(0.1);
 			}
+			self.checkSurroundings();
 		}
 		self.ticker = requestAnimationFrame(self.tick);
 	}
@@ -774,17 +839,22 @@ var Opponents = function(opponentNb) {
 			self.lastOpponentMove = Date.now();
 			for (var i=0; i<self.opponentNb; i++) {
 				if (self.opponents[i].health) {
-					if (self.opponents[i].food < self.opponents[i].foodLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0)
+					if (self.opponents[i].food < self.opponents[i].foodLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0) {
 						self.opponents[i].eat();
+						self.opponents[i].updatePlayer(0.1);
+					}
 					else {
-						if (self.opponents[i].water < self.opponents[i].waterLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0)
+						if (self.opponents[i].water < self.opponents[i].waterLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0) {
 							self.opponents[i].drink();
+							self.opponents[i].updatePlayer(0.1);
+						}
 						else {
 							self.opponents[i].move();
 							if (fogOpponentsMode)
 								map.lightSurroundingPlayer(i);
 						}
 					}
+					self.opponents[i].checkSurroundings();
 				}
 			}
 		}
