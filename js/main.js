@@ -509,7 +509,7 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:80,range:20,accuracy:0.6},8,"bazooka"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular"));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));
 	}
