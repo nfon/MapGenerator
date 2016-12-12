@@ -681,7 +681,7 @@ var Player = function() {
 						else
 							player=opponents.opponents[o];
 
-						if (player.id != self.id) {
+						if (player.id != self.id && player.health) {
 							if (player.coordinates.x == i && player.coordinates.y == j)
 								closedOpponents.push({player:player,distance:getDistance(player.coordinates,self.coordinates)});
 						}
