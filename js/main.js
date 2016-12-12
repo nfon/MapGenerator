@@ -768,10 +768,7 @@ var Player = function() {
     }
 
     this.getReverseDirection = function(direction) {
-    	if (direction==0)
-    		return 7;
-    	else 
-    		return (7-direction+7)%7;
+    	return (7-direction)%8;
     }
 
     this.checkSurroundings = function() {
