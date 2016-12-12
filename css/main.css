@@ -78,3 +78,13 @@ canvas{
 .active{
 	background-color: lightgrey;
 }
+
+.ui>div>div.percent {
+	background-color: lightgrey;
+	width: 100px;
+}
+
+.ui>div>div.percent>span {
+	display: inline-block;
+	background-color:green;
+}

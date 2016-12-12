@@ -383,7 +383,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    			imgData.data[i+1] = 215;
 		    			imgData.data[i+2] = 0;
 		    		}
-	    			imgData.data[i+3] = 255*opacity; 
+	    			imgData.data[i+3] = 255*opacity;
 		    	}
 		    }
 
@@ -422,20 +422,22 @@ var Ui = function() {
 				player=opponents.opponents[i];
 			
 	    	if (self.$tracker.find("#id_"+player.id).length == 0)
-	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<span class='food'></span><br/>water:<span class='water'></span><br/>weight:<span class='weight'></span><br/>health:<span class='health'></span><br/>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
+	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
 	    	$playerTracker.find(".attack").text(player.attack);
 	    	$playerTracker.find(".range").text(player.range);
-	    	$playerTracker.find(".food").text(player.food+"/"+player.foodMax);
-	    	$playerTracker.find(".water").text(player.water+"/"+player.waterMax);
-	    	$playerTracker.find(".weight").text(player.weight+"/"+player.weightMax);
-	    	$playerTracker.find(".health").text(player.health+"/"+player.healthMax);
+	    	$playerTracker.find(".food").text(player.food+"/"+player.foodMax).css("width",player.food*100/player.foodMax);
+	    	$playerTracker.find(".water").text(player.water+"/"+player.waterMax).css("width",player.water*100/player.waterMax);
+	    	$playerTracker.find(".weight").text(player.weight+"/"+player.weightMax).css("width",player.weight*100/player.weightMax);
+	    	$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
 	    	var inventory = "";
 	    	for (o in player.inventory) {
-	    		inventory+=player.inventory[o].name;
+	    		inventory+=player.inventory[o].name+", ";
 	    	}
+	    	if (inventory.length)
+	    		inventory = inventory.substring(0,inventory.length-2);
 	    	$playerTracker.find(".inventory").text(inventory);
 	    	$playerTracker.find("input").prop(player.follow?'checked':'');
 		}
@@ -504,6 +506,7 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:40,range:7,accuracy:0.8},0.5,"gun"));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:70,range:3,accuracy:0.2},3,"shotgun"));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:50,range:20,accuracy:0.8},4,"longneck"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:80,range:20,accuracy:0.6},8,"bazooka"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular"));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:150}],2,"backpack"));
@@ -695,7 +698,7 @@ var Player = function() {
 		if (closedOpponents.length) {
 			var attack = self.attack;
 	    	var range = self.range;
-	    	var damage = round(self.attack*self.accuracy*self.range/closedOpponents[0].distance,2);
+	    	var damage = round(self.attack*self.accuracy*self.range/Math.max(1,closedOpponents[0].distance),2);
 	    	var bestWeapon = {name:"fist"};
 
 	    	var weapons = self.inventory.filter(function(item){
@@ -709,7 +712,8 @@ var Player = function() {
 	    			var tempAccuracy = weapon.specs.accuracy;
 	    			var tempDamage = 0;
 
-	    			tempDamage = tempAttack*tempAccuracy*(tempRange/closedOpponents[0].distance);
+	    			tempDamage = tempAttack*tempAccuracy*(tempRange/Math.max(1,closedOpponents[0].distance));
+
 	    			if (tempDamage>damage) {
 	    				damage = round(tempDamage,2);
 	    				bestWeapon = weapon;
@@ -841,7 +845,7 @@ var Opponents = function(opponentNb) {
 	this.opponentNb = opponentNb;
 	this.delayOpponent = 500;
 	this.lastOpponentMove = Date.now();
-	this.opponents = new Array();
+	this.opponents = [];
 	this.ticker;
 	var self = this;
 
