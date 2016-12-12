@@ -437,14 +437,16 @@ var Ui = function() {
 	    		$playerTracker.find(".water").text(player.water+"/"+player.waterMax).css("width",player.water*100/player.waterMax);
 	    		$playerTracker.find(".weight").text(player.weight+"/"+player.weightMax).css("width",player.weight*100/player.weightMax);
 	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
-		    	var inventory = "";
-		    	for (o in player.inventory) {
-		    		inventory+=player.inventory[o].name+", ";
-		    	}
-		    	if (inventory.length)
-		    		inventory = inventory.substring(0,inventory.length-2);
-		    	$playerTracker.find(".inventory").text(inventory);
-		    }
+	    	}
+	    	var inventory = "";
+	    	for (o in player.inventory) {
+	    		inventory+=player.inventory[o].name+", ";
+	    	}
+	    	if (inventory.length)
+	    		inventory = inventory.substring(0,inventory.length-2);
+	    	else
+	    		inventory = "/";
+	    	$playerTracker.find(".inventory").text(inventory);
 	    	$playerTracker.find("input").prop(player.follow?'checked':'');
 		}
     };
@@ -632,8 +634,20 @@ var Player = function() {
 		    			}
 		    		}
 		    	}
+		    	return true;
 	    	}
     	}
+    	return false;
+    }
+
+    this.getInventory = function(player) {
+    	if (player) {
+	    	displayMessage(self.id+" stealing "+player.id+" inventory");
+	    	for (i in player.inventory) {
+	    		self.getItem(player.inventory[i]);
+    			player.inventory.pop(player.inventory[i]);//empty the inventory so no one can steal what is left
+	    	}
+	    }
     }
 
     this.hasItem = function(id) {
@@ -665,10 +679,35 @@ var Player = function() {
 	    		self.water=Math.max(0,round(self.water-coef,2));
     		self.checkHealth();
     		self.getItem(items.hasItem(self.coordinates));
+    		self.getInventory(self.hasOpponent(0,self.coordinates));
+
     	}
     }
 
-    this.getClosedOpponents = function() {
+    this.hasOpponent = function(status,coordinates) {
+    	//status :
+    	//0: death
+    	//1: alive
+    	//2: either
+		for (var o=-1;o<opponents.opponentNb;o++) {
+			var player;
+			if (o==-1)
+				player=hero;
+			else
+				player=opponents.opponents[o];
+
+			if (player.id!=self.id && player.coordinates.x == coordinates.x && player.coordinates.y == coordinates.y)
+				if (status==0 && player.health==0 || status==1 && player.health>0 || status==2)
+					return player;
+		}
+		return false;
+	}
+
+    this.getClosedOpponents = function(status) {
+    	//status :
+    	//0: death
+    	//1: alive
+    	//2: either
     	var x = self.coordinates.x;
 		var y = self.coordinates.y;
 		var range = map.map[x][y].altitude*self.vision;
@@ -687,9 +726,11 @@ var Player = function() {
 						else
 							player=opponents.opponents[o];
 
-						if (player.id != self.id && player.health) {
-							if (player.coordinates.x == i && player.coordinates.y == j)
-								closedOpponents.push({player:player,distance:getDistance(player.coordinates,self.coordinates)});
+						if (player.id != self.id) {
+							if (status==0 && player.health==0 || status==1 && player.health || status==2) {
+								if (player.coordinates.x == i && player.coordinates.y == j)
+									closedOpponents.push({player:player,distance:getDistance(player.coordinates,self.coordinates)});
+							}
 						}
 					}							
 				}
@@ -779,7 +820,7 @@ var Player = function() {
 
     this.checkSurroundings = function() {
 
-		var closedOpponents = self.getClosedOpponents();
+		var closedOpponents = self.getClosedOpponents(1);
 
 		if (closedOpponents.length) {			
 			var attack = self.attack;
@@ -984,12 +1025,18 @@ var Opponent = function (id,coordinates) {
 
     this.move = function() {
     	var direction = getRandom(0,8);
-    	var closedOpponents = self.getClosedOpponents();
+    	var closedOpponents = self.getClosedOpponents(2);
     	if (closedOpponents.length) {
-    		if (self.health>self.healthLimit)
-				direction = self.getDirection(closedOpponents[0].player.coordinates);
-    		else
-    			direction = self.getReverseDirection(direction);
+    		if (closedOpponents[0].player.health) {
+    			if (self.health>self.healthLimit)
+					direction = self.getDirection(closedOpponents[0].player.coordinates);
+    			else
+    				direction = self.getReverseDirection(direction);
+    		}
+    		else {
+    			if (closedOpponents[0].player.inventory.length)
+					direction = self.getDirection(closedOpponents[0].player.coordinates);
+    		}
     	}
     	else {
     		var closedItems = self.getClosedItems();
