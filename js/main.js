@@ -353,7 +353,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    			imgData.data[i+3] = 255*opacity; 
 		    	}
 		    }
-		    for (var o=0; o<opponents.opponentNb; o++) {
+		    for (var o in opponents.opponents) {
 		    	var opponent = opponents.opponents[o];
 		    	if (opponent.coordinates.x == x && opponent.coordinates.y == y) {
 		    		if (opponent.health) {
@@ -364,6 +364,23 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    		else {
 		    			imgData.data[i] = 0; 
 		    			imgData.data[i+1] = 0;
+		    			imgData.data[i+2] = 0;
+		    		}
+	    			imgData.data[i+3] = 255*opacity; 
+		    	}
+		    }
+
+		    for (var b in items.items) {
+		    	var item = items.items[b];
+		    	if (item.coordinates.x == x && item.coordinates.y == y) {
+		    		if (item.grabbed) {
+						imgData.data[i] = 255;
+		    			imgData.data[i+1] = 140;
+		    			imgData.data[i+2] = 0;
+		    		}
+		    		else {
+		    			imgData.data[i] = 255; 
+		    			imgData.data[i+1] = 215;
 		    			imgData.data[i+2] = 0;
 		    		}
 	    			imgData.data[i+3] = 255*opacity; 
@@ -435,6 +452,10 @@ var Ui = function() {
 				player=opponents.opponents[i];
 			if (player.coordinates.x==x && player.coordinates.y==y)
 	    		self.$tracker.find("#id_"+player.id).addClass('active');
+	    }
+	    for (var o in items.items) {
+	    	if (items.items[o].coordinates.x == x && items.items[o].coordinates.y == y)
+	    		displayMessage(items.items[o]);
 	    }
     }
 
@@ -677,25 +698,26 @@ var Player = function() {
 	    	var damage = round(self.attack*self.accuracy*self.range/closedOpponents[0].distance,2);
 	    	var bestWeapon = {name:"fist"};
 
-	    	for (var i in self.inventory) {
-	    		var item = self.inventory[i];
-	    		if (item.type=="weapon") {
-	    			if (item.specs.range <= closedOpponents[0].distance) {
-		    			var tempAttack = item.specs.attack;
-		    			var tempRange = item.specs.range;
-		    			var tempAccuracy = item.specs.accuracy;
-		    			var tempDamage = 0;
+	    	var weapons = self.inventory.filter(function(item){
+	    		return item.type=="weapon";
+	    	});
+	    	for (var w in weapons) {
+	    		var weapon = weapons[w];
+    			if (weapon.specs.range <= closedOpponents[0].distance) {
+	    			var tempAttack = weapon.specs.attack;
+	    			var tempRange = weapon.specs.range;
+	    			var tempAccuracy = weapon.specs.accuracy;
+	    			var tempDamage = 0;
 
-		    			tempDamage = tempAttack*tempAccuracy*(tempRange/closedOpponents[0].distance);
-		    			if (tempDamage>damage) {
-		    				damage = round(tempDamage,2);
-		    				bestWeapon = item;
-		    			}
+	    			tempDamage = tempAttack*tempAccuracy*(tempRange/closedOpponents[0].distance);
+	    			if (tempDamage>damage) {
+	    				damage = round(tempDamage,2);
+	    				bestWeapon = weapon;
 	    			}
-				}
+    			}
 			}
-			console.log(self.id+" use "+bestWeapon.name+" on "+closedOpponents[0].player.id+" and cause "+damage);
-			closedOpponents[0].player.health -= damage;
+			displayMessage(self.id+" use "+bestWeapon.name+" on "+closedOpponents[0].player.id+" and cause "+damage+" sur "+closedOpponents[0].player.health);
+			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
 		}
     }
 
