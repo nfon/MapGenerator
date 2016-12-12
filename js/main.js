@@ -611,6 +611,7 @@ var Player = function() {
 
     this.getItem = function(item) {
     	if (item) {
+    		displayMessage(self.id+" get item "+item.name);
     		if (item.weight+self.weight<=self.weightMax) {
 	    		self.inventory.push(item);
 	    		self.updateWeight(item.weight);
@@ -661,8 +662,7 @@ var Player = function() {
     	}
     }
 
-    this.checkSurroundings = function() {
-
+    this.getClosedOpponents = function() {
     	var x = self.coordinates.x;
 		var y = self.coordinates.y;
 		var range = map.map[x][y].altitude*self.vision;
@@ -695,7 +695,90 @@ var Player = function() {
 		    return a.distance - b.distance;
 		});
 
-		if (closedOpponents.length) {
+		return closedOpponents;
+    }
+
+    this.getClosedItems = function() {
+    	var x = self.coordinates.x;
+		var y = self.coordinates.y;
+		var range = map.map[x][y].altitude*self.vision;
+
+		var closedItems = [];
+
+		var itemsAvailable = items.items.filter(function(item){
+			return item.grabbed==false;
+		});
+		
+		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
+			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
+				var powX = Math.pow(i-x,2);
+				var powY = Math.pow(j-y,2);
+				if ( powX + powY < Math.pow(range,2) ) {
+					for (var o in itemsAvailable) {
+						var item = itemsAvailable[o];
+						if (item.coordinates.x == i && item.coordinates.y == j)
+							closedItems.push({item:item,distance:getDistance(item.coordinates,self.coordinates)});
+					}							
+				}
+			}
+		}
+
+
+		closedItems.sort(function(a, b) {
+		    return a.distance - b.distance;
+		});
+
+		return closedItems;
+    }
+
+    this.getDirection = function(coordinates) {
+    	var direction;
+    	var deltaX = self.coordinates.x - coordinates.x;
+    	var deltaY = self.coordinates.y - coordinates.y;
+    	
+    	if (deltaX != 0) {
+    		if (deltaY != 0) {
+    			if (deltaX > 0) {
+    				if (deltaY > 0)
+    					direction = 0;
+    				else
+    					direction = 5;
+    			}
+    			else {
+					if (deltaY > 0)
+    					direction = 2;
+    				else
+    					direction = 7;
+    			}
+    		}
+    		else {
+    			if (deltaX > 0)
+					direction = 3;
+    			else
+					direction = 4;
+    		}
+    	}
+    	else {
+    		if (deltaY > 0)
+				direction = 1;
+			else	
+				direction = 6;
+    	}
+    	return direction;
+    }
+
+    this.getReverseDirection = function(direction) {
+    	if (direction==0)
+    		return 7;
+    	else 
+    		return (7-direction+7)%7;
+    }
+
+    this.checkSurroundings = function() {
+
+		var closedOpponents = self.getClosedOpponents();
+
+		if (closedOpponents.length) {			
 			var attack = self.attack;
 	    	var range = self.range;
 	    	var damage = round(self.attack*self.accuracy*self.range/Math.max(1,closedOpponents[0].distance),2);
@@ -897,17 +980,30 @@ var Opponent = function (id,coordinates) {
 	self.init(id,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
 
     this.move = function() {
-		var direction = getRandom(0,8);
+    	var direction = getRandom(0,8);
+    	var closedOpponents = self.getClosedOpponents();
+    	if (closedOpponents.length) {
+    		if (self.health>self.healthLimit)
+				direction = self.getDirection(closedOpponents[0].player.coordinates);
+    		else
+    			direction = self.getReverseDirection(direction);
+    	}
+    	else {
+    		var closedItems = self.getClosedItems();
+    		if (closedItems.length)
+    			direction = self.getDirection(closedItems[0].item.coordinates);
+    	}
+
 		var x = self.coordinates.x;
 		var y = self.coordinates.y;
 		switch(direction) {
 			case 0 : x=x-1; y=y-1; break;
-			case 1 : x=x-1; break;
-			case 2 : x=x-1; y=y+1; break;
-			case 3 : y=y-1; break;
-			case 4 : y=y+1; break;
-			case 5 : x=x+1; y=y-1; break;
-			case 6 : x=x+1; break;
+			case 1 : y=y-1; break;
+			case 2 : x=x-1; y=y-1; break;
+			case 3 : x=x-1; break;
+			case 4 : x=x+1; break;
+			case 5 : x=x-1; y=y+1; break;
+			case 6 : y=y+1; break;
 			case 7 : x=x+1; y=y+1; break;
 		}
 
