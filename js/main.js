@@ -425,20 +425,26 @@ var Ui = function() {
 	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
-	    	$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
-	    	$playerTracker.find(".attack").text(player.attack);
-	    	$playerTracker.find(".range").text(player.range);
-	    	$playerTracker.find(".food").text(player.food+"/"+player.foodMax).css("width",player.food*100/player.foodMax);
-	    	$playerTracker.find(".water").text(player.water+"/"+player.waterMax).css("width",player.water*100/player.waterMax);
-	    	$playerTracker.find(".weight").text(player.weight+"/"+player.weightMax).css("width",player.weight*100/player.weightMax);
-	    	$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
-	    	var inventory = "";
-	    	for (o in player.inventory) {
-	    		inventory+=player.inventory[o].name+", ";
+	    	if (player.health==0) {
+	    		$playerTracker.addClass("dead");
+	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
 	    	}
-	    	if (inventory.length)
-	    		inventory = inventory.substring(0,inventory.length-2);
-	    	$playerTracker.find(".inventory").text(inventory);
+	    	else {
+	    		$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
+	    		$playerTracker.find(".attack").text(player.attack);
+	    		$playerTracker.find(".range").text(player.range);
+	    		$playerTracker.find(".food").text(player.food+"/"+player.foodMax).css("width",player.food*100/player.foodMax);
+	    		$playerTracker.find(".water").text(player.water+"/"+player.waterMax).css("width",player.water*100/player.waterMax);
+	    		$playerTracker.find(".weight").text(player.weight+"/"+player.weightMax).css("width",player.weight*100/player.weightMax);
+	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
+		    	var inventory = "";
+		    	for (o in player.inventory) {
+		    		inventory+=player.inventory[o].name+", ";
+		    	}
+		    	if (inventory.length)
+		    		inventory = inventory.substring(0,inventory.length-2);
+		    	$playerTracker.find(".inventory").text(inventory);
+		    }
 	    	$playerTracker.find("input").prop(player.follow?'checked':'');
 		}
     };
@@ -768,7 +774,7 @@ var Player = function() {
     }
 
     this.getReverseDirection = function(direction) {
-    	return (7-direction)%8;
+    	return 7-direction;
     }
 
     this.checkSurroundings = function() {
