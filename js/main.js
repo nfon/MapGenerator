@@ -619,23 +619,25 @@ var Player = function() {
 
     this.getItem = function(item) {
     	if (item) {
-    		displayMessage(self.id+" get item "+item.name);
-    		if (item.weight+self.weight<=self.weightMax) {
-	    		self.inventory.push(item);
-	    		self.updateWeight(item.weight);
-	    		if (item.type=="object") {
-		    		for (var i in item.specs) {
-		    			var spec = item.specs[i];
-		    			if (spec.type=="permanent") {
-		    				self[spec.property] = Math.max(self[spec.property],spec.value);
-		    			}
-		    			if (spec.type=="cumul") {
-		    				self[spec.property] += spec.value;
-		    			}
-		    		}
+    		if ( (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
+	    		displayMessage(self.id+" get item "+item.name);
+	    		if (item.weight+self.weight<=self.weightMax) {
+		    		self.inventory.push(item);
+		    		self.updateWeight(item.weight);
+		    		if (item.type=="object") {
+			    		for (var i in item.specs) {
+			    			var spec = item.specs[i];
+			    			if (spec.type=="permanent") {
+			    				self[spec.property] = Math.max(self[spec.property],spec.value);
+			    			}
+			    			if (spec.type=="cumul") {
+			    				self[spec.property] += spec.value;
+			    			}
+			    		}
+			    	}
+			    	return true;
 		    	}
-		    	return true;
-	    	}
+		    }
     	}
     	return false;
     }
@@ -1039,7 +1041,7 @@ var Opponent = function (id,coordinates) {
     		}
     	}
     	else {
-    		var closedItems = self.getClosedItems();
+    		var closedItems = self.getClosedItems();//warning : if the player is fully loaded he will probably stay static
     		if (closedItems.length)
     			direction = self.getDirection(closedItems[0].item.coordinates);
     	}
