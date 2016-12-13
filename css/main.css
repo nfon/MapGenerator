@@ -79,6 +79,10 @@ canvas{
 	background-color: lightgrey;
 }
 
+#tracker {
+	list-style-type: none;
+}
+
 .ui>div>div.percent {
 	background-color: lightgrey;
 	width: 100px;

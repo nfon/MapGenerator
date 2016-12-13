@@ -422,7 +422,7 @@ var Ui = function() {
 				player=opponents.opponents[i];
 			
 	    	if (self.$tracker.find("#id_"+player.id).length == 0)
-	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
+	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>name:<span>"+player.name+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	if (player.health==0) {
@@ -572,6 +572,7 @@ var Item = function(item,coordinates,grabbed) {
 
 var Player = function() {
 	this.id;
+	this.name;
     this.coordinates;
     this.vision;
     this.attack;
@@ -590,8 +591,9 @@ var Player = function() {
     this.follow = true;
     var self = this;
 
-    this.init = function(id,coordinates,vision,attack,accuracy,range,food,foodLimit,water,waterLimit,weight,health,healthLimit,gathering,follow) {
+    this.init = function(id,name,coordinates,vision,attack,accuracy,range,food,foodLimit,water,waterLimit,weight,health,healthLimit,gathering,follow) {
     	self.id = id;
+    	self.name = name;
     	self.coordinates = {x:coordinates.x,y:coordinates.y};
     	self.vision = vision;
     	self.attack = attack;
@@ -620,7 +622,7 @@ var Player = function() {
     this.getItem = function(item) {
     	if (item) {
     		if ( (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
-	    		displayMessage(self.id+" get item "+item.name);
+	    		displayMessage(self.name+" ("+self.id+") get item "+item.name);
 	    		if (item.weight+self.weight<=self.weightMax) {
 		    		self.inventory.push(item);
 		    		self.updateWeight(item.weight);
@@ -644,7 +646,7 @@ var Player = function() {
 
     this.getInventory = function(player) {
     	if (player) {
-	    	displayMessage(self.id+" stealing "+player.id+" inventory");
+	    	displayMessage(self.name+" ("+self.id+") stealing "+player.name+" ("+player.id+")'s inventory");
 	    	for (i in player.inventory) {
 	    		self.getItem(player.inventory[i]);
     			player.inventory.pop(player.inventory[i]);//empty the inventory so no one can steal what is left
@@ -849,7 +851,7 @@ var Player = function() {
 	    			}
     			}
 			}
-			displayMessage(self.id+" use "+bestWeapon.name+" on "+closedOpponents[0].player.id+" and cause "+damage+" sur "+closedOpponents[0].player.health);
+			displayMessage(self.name+" ("+self.id+") use "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and cause "+damage+" sur "+closedOpponents[0].player.health);
 			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
 		}
     }
@@ -882,7 +884,7 @@ var Player = function() {
     }
 }
 
-var Hero = function(coordinates) {
+var Hero = function(name,coordinates) {
 	Player.call(this);
 
 	this.delay = 250;
@@ -891,7 +893,7 @@ var Hero = function(coordinates) {
 	this.ticker;
 
 	var self = this;
-	self.init(99,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
+	self.init(99,name,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -979,10 +981,11 @@ var Opponents = function(opponentNb) {
 	var self = this;
 
 	this.generate = function() {
+		var names = chance.unique(chance.first, self.opponentNb);
 		for (var i=0; i<self.opponentNb; i++) {
 			var x = getRandom(0,map.mapH-1);
 			var y = getRandom(0,map.mapL-1);
-			self.opponents[i] = new Opponent(i,{x:x,y:y});
+			self.opponents[i] = new Opponent(i,names[i],{x:x,y:y});
 		}
 		if (self.ticker)
 			cancelAnimationFrame(self.tick);
@@ -1019,11 +1022,11 @@ var Opponents = function(opponentNb) {
 	this.generate();
 }
 
-var Opponent = function (id,coordinates) {
+var Opponent = function (id,name,coordinates) {
 	Player.call(this);
 
 	var self = this;
-	self.init(id,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
+	self.init(id,name,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
 
     this.move = function() {
     	var direction = getRandom(0,8);
@@ -1111,7 +1114,8 @@ $(document).ready(function() {
 		Hero.prototype = Object.create(Player.prototype); 
 		Hero.prototype.constructor = Player;
 
-		hero = new Hero({x:0,y:0});
+		var name = $("input[name=name]").val();
+		hero = new Hero(name,{x:0,y:0});
 		hero.move();
 
 		if (map.ticker)
