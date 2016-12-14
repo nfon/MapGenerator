@@ -957,6 +957,24 @@ var Player = function() {
 		return closedLava;
     }
 
+    this.getAverageCoord = function(arr,item) {
+    	var x=0;
+    	var y=0;
+    	var len=arr.length;
+    	for (i in arr) {
+    		var cur = arr[i];
+    		if (item) {
+				x+=cur[item].coordinates.x;
+    			y+=cur[item].coordinates.y;
+    		}
+    		else {
+    			x+=cur.coordinates.x;
+    			y+=cur.coordinates.y;
+    		}
+    	}
+    	return {x:x/len,y:y/len};
+    }
+
     this.getDirection = function(coordinates) {
     	var direction;
     	var deltaX = self.coordinates.x - coordinates.x;
@@ -1224,12 +1242,12 @@ var Opponent = function (id,name,coordinates) {
     	var direction = getRandom(0,8);
     	var closedLava = self.getClosedLava();
     	if (closedLava.length)
-			direction = self.getReverseDirection(self.getDirection(closedLava[0].coordinates));
+			direction = self.getReverseDirection(self.getDirection(self.getAverageCoord(closedLava)));
     	else {
 	    	var closedOpponents = self.getClosedOpponents(2);
 	    	if (closedOpponents.length) {
 	    		if (closedOpponents[0].player.health) {
-					direction = self.getDirection(closedOpponents[0].player.coordinates);
+					direction = self.getDirection(self.getAverageCoord(closedOpponents,"player"));
 	    			if (self.health<=self.healthLimit)
 	    				direction = self.getReverseDirection(direction);
 	    		}
