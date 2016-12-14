@@ -442,7 +442,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 				imgData.data[i+3] = 255*self.map[x][y].tempOpacity;
 			}
 	    }
-	    
+
 	    var x = hero.coordinates.x;
     	var y = hero.coordinates.y;
 		var i = x*self.mapL*4 + y*4;
@@ -1245,7 +1245,9 @@ var Opponent = function (id,name,coordinates) {
 }
 
 $(document).ready(function() {
-	
+	$("#lava").on("click",function(){
+		map.releaseLava();
+	});
 	$("#mapSettings").on("submit",function(evt){
 		mapH = parseInt($("input[name=mapHeight]").val(),10);
 		mapL = parseInt($("input[name=mapWidth]").val(),10);
