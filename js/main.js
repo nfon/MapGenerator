@@ -1,5 +1,6 @@
 var map;
 var genericItems;
+var gameOn=false;
 var debugMode = false;
 
 function clearMessage() {
@@ -407,8 +408,10 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 
 	this.tick = function() {
-		self.draw();
-		self.ticker = requestAnimationFrame(self.tick);
+		if (gameOn) {
+			self.draw();
+			self.ticker = requestAnimationFrame(self.tick);
+		}
 	}
 }
 
@@ -461,6 +464,7 @@ var Ui = function() {
 		if (playerAlive.length==1) {
 			self.$board.find("#alive").text("WINNER : "+playerAlive[0].name+ "("+playerAlive[0].id+")");
 			displayMessage(playerAlive[0].name+" wins!","#000000","FFD700");
+			gameOn=false;
 		}
 		else
 			self.$board.find("#alive").text(playerAlive.length+" players alive");
@@ -508,12 +512,14 @@ var Ui = function() {
 	}
 
 	this.tick = function() {
-		var delay = 1000;
-		if (Date.now()-self.last>delay) {
-			self.last = Date.now();
-			self.updateTracker();
+		if (gameOn) {
+			var delay = 1000;
+			if (Date.now()-self.last>delay) {
+				self.last = Date.now();
+				self.updateTracker();
+			}
+			self.ticker = requestAnimationFrame(self.tick);
 		}
-		self.ticker = requestAnimationFrame(self.tick);
 	}
 
 	this.clean();
@@ -526,7 +532,7 @@ var Sounds = function() {
 	var self = this;
 
 	this.init = function() {
-		self.sounds["canon"]=new Sound("#canon");
+		self.sounds["canon"] = new Sound("#canon");
 	}
 	self.init();
 }
@@ -973,22 +979,24 @@ var Hero = function(name,coordinates) {
 	}
 
 	this.tick = function() {
-		if (Date.now()-self.last>self.delay && self.health) {
-			self.last = Date.now();
-			if (self.keydown != -1 && map && map.initialized && self.health)
-				self.move(self.keydown-37);
-			else
-			{
-				if (map.map[self.coordinates.x][self.coordinates.y].type==0)
-					self.drink();
+		if (gameOn) {
+			if (Date.now()-self.last>self.delay && self.health) {
+				self.last = Date.now();
+				if (self.keydown != -1 && map && map.initialized && self.health)
+					self.move(self.keydown-37);
 				else
-					self.eat();
+				{
+					if (map.map[self.coordinates.x][self.coordinates.y].type==0)
+						self.drink();
+					else
+						self.eat();
 
-				self.updatePlayer(0.1);
+					self.updatePlayer(0.1);
+				}
+				self.checkSurroundings();
 			}
-			self.checkSurroundings();
+			self.ticker = requestAnimationFrame(self.tick);
 		}
-		self.ticker = requestAnimationFrame(self.tick);
 	}
 
 	this.move = function(direction) {
@@ -1051,30 +1059,32 @@ var Opponents = function(opponentNb) {
 	}
 
 	this.tick = function() {
-		if (Date.now()-self.lastOpponentMove>self.delayOpponent) {
-			self.lastOpponentMove = Date.now();
-			for (var i=0; i<self.opponentNb; i++) {
-				if (self.opponents[i].health) {
-					if (self.opponents[i].food < self.opponents[i].foodLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0) {
-						self.opponents[i].eat();
-						self.opponents[i].updatePlayer(0.1);
-					}
-					else {
-						if (self.opponents[i].water < self.opponents[i].waterLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0) {
-							self.opponents[i].drink();
+		if (gameOn) {
+			if (Date.now()-self.lastOpponentMove>self.delayOpponent) {
+				self.lastOpponentMove = Date.now();
+				for (var i=0; i<self.opponentNb; i++) {
+					if (self.opponents[i].health) {
+						if (self.opponents[i].food < self.opponents[i].foodLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0) {
+							self.opponents[i].eat();
 							self.opponents[i].updatePlayer(0.1);
 						}
 						else {
-							self.opponents[i].move();
-							if (fogOpponentsMode)
-								map.lightSurroundingPlayer(i);
+							if (self.opponents[i].water < self.opponents[i].waterLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0) {
+								self.opponents[i].drink();
+								self.opponents[i].updatePlayer(0.1);
+							}
+							else {
+								self.opponents[i].move();
+								if (fogOpponentsMode)
+									map.lightSurroundingPlayer(i);
+							}
 						}
+						self.opponents[i].checkSurroundings();
 					}
-					self.opponents[i].checkSurroundings();
 				}
 			}
+			self.ticker = requestAnimationFrame(self.tick);
 		}
-		self.ticker = requestAnimationFrame(self.tick);
 	}
 
 	this.generate();
@@ -1156,6 +1166,8 @@ $(document).ready(function() {
 		fogMode = $("input[name=fogMode]").prop("checked");
 		fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
 		debugMode = $("input[name=debugMode]").prop("checked");
+
+		gameOn = true;
 
 		map = new Map(mapL,mapH,heightMin,heightMax,summitNb,lakeNb,riverNb,fogMode,fogOpponentsMode);
 		map.create();
