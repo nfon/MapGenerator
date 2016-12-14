@@ -279,7 +279,25 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.releaseLava = function() {
 		var seuilLvL1 = 3;
-		var seuilLvl2 = 4
+		//var seuilLvl2 = 4;
+
+		var lavaSize = self.mapL*Math.sqrt(2)/2-self.lavaStep;
+
+		for (var i=0;i<=self.mapL-1;i++) {
+			for (var j=0;j<=self.mapH-1;j++) {
+				var powX = Math.pow(i-Math.round(self.mapL/2),2);
+				var powY = Math.pow(j-Math.round(self.mapH/2),2);
+				if ( powX + powY > Math.pow(lavaSize+2,2) )
+					self.map[i][j].type = 2;
+				if (getRandom(0,10)<seuilLvL1) {
+					if ( powX + powY > Math.pow(lavaSize,2) )
+						self.map[i][j].type = 2;
+				}
+			}
+		}
+
+
+/*
 		for (var i=self.lavaStep;i<self.mapH-self.lavaStep;i++) {
 			self.map[i][self.lavaStep].type = 2;
 			self.map[i][self.mapL-1-self.lavaStep].type = 2;
@@ -308,6 +326,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			if (getRandom(0,10)==seuilLvl2 && self.lavaStep+3<self.mapL)
 				self.map[self.mapL-3-self.lavaStep][j].type = 2;
 		}
+*/
 		self.lavaStep++;
 	}
 
