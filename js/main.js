@@ -1066,7 +1066,10 @@ var Hero = function(name,coordinates) {
 			if (map) {
 				$(document).on("keydown",function(evt) {
 					if (evt.keyCode>36 && evt.keyCode<41)
+					{
 						self.keydown = evt.keyCode;
+						return false;
+					}
 				});
 				
 				$(document).on("keyup",function(evt) {
