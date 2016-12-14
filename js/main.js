@@ -458,8 +458,11 @@ var Ui = function() {
 	    	$playerTracker.find(".inventory").text(inventory);
 	    	$playerTracker.find("input").prop(player.follow?'checked':'');
 		}
-		if (playerAlive.length==1)
+		if (playerAlive.length==1) {
 			self.$board.find("#alive").text("WINNER : "+playerAlive[0].name+ "("+playerAlive[0].id+")");
+			displayMessage(playerAlive[0].name+" wins!","#000000","FFD700");
+			cancelAnimationFrame(self.tick);
+		}
 		else
 			self.$board.find("#alive").text(playerAlive.length+" players alive");
     }
@@ -665,10 +668,12 @@ var Player = function() {
 
     this.getInventory = function(player) {
     	if (player) {
-	    	displayMessage(self.name+" ("+self.id+") stealing "+player.name+" ("+player.id+")'s inventory","#FFD700");
-	    	for (i in player.inventory) {
-	    		self.getItem(player.inventory[i]);
-    			player.inventory.pop(player.inventory[i]);//empty the inventory so no one can steal what is left
+    		if (player.inventory.length) {
+	    		displayMessage(self.name+" ("+self.id+") stealing "+player.name+" ("+player.id+")'s inventory","#FFD700");
+	    		for (i in player.inventory) {
+		    		self.getItem(player.inventory[i]);
+    				player.inventory.pop(player.inventory[i]);//empty the inventory so no one can steal what is left
+	    		}
 	    	}
 	    }
     }
@@ -687,6 +692,7 @@ var Player = function() {
 			if (spec.type=="use")
 				self[spec.property] = Math.min(self[spec.property+"Max"],self[spec.property]+spec.value);
 		}
+    	displayMessage(self.name+" ("+self.id+") uses "+item.name,"#FFD700");
 		self.updateWeight(-item.weight);
 		self.inventory.pop(item);
     }
@@ -903,6 +909,8 @@ var Player = function() {
     		self.health = Math.max(0,round(self.health-0.5,2));
     	if (self.water==0)
     		self.health = Math.max(0,round(self.health-0.1,2));
+    	if (self.health==0)
+			displayMessage(self.name+" ("+self.id+") died","#B22222","#000000");
     }
 }
 
