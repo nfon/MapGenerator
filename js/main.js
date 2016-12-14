@@ -353,9 +353,9 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var g = [198,255,214,181,150,115,79,56,52,153,255];
 		var b = [255,66,39,29,29,23,19,43,42,153,255];
 
-		var rLava = [249,249];
-		var gLava = [150,76];
-		var bLava = [37,37];
+		var rLava = [249,249,198];
+		var gLava = [150,76,38];
+		var bLava = [37,37,1];
 
 		var c2 = $("#map>canvas")[0];
 		var ctx2 = c2.getContext("2d");
@@ -371,9 +371,9 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    var x = Math.floor(i/4/self.mapL);
 		    var opacity = self.map[x][y].opacity;
 		    if (self.map[x][y].type==2) {
-		    	imgData.data[i] = rLava[getRandomNormal(0,1)];
-	    		imgData.data[i+1] = gLava[getRandomNormal(0,1)];
-	    		imgData.data[i+2] = bLava[getRandomNormal(0,1)];;
+		    	imgData.data[i] = rLava[getRandomNormal(0,2)];
+	    		imgData.data[i+1] = gLava[getRandomNormal(0,2)];
+	    		imgData.data[i+2] = bLava[getRandomNormal(0,2)];;
 	    		imgData.data[i+3] = 255;
 	    		opacity=255;
 		    }
