@@ -378,36 +378,27 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    		opacity=255;
 		    }
 		    else {
-				if (hero.coordinates.x==x && hero.coordinates.y==y) {
-					imgData.data[i] = 255;
-		    		imgData.data[i+1] = 0;
-		    		imgData.data[i+2] = 0;
-		    		imgData.data[i+3] = 255;
-		    		opacity=255;
-			    }
-			    else {
-			    	if (self.fogMode && hero.follow) {
-			    		opacity = Math.max(opacity,hero.map[x][y].opacity);
-			    	}
-			    	if (self.fogOpponentsMode) {
-			    		for (var o=0; o<opponents.opponentNb; o++) {
-			    			if (opponents.opponents[o].follow)
-			    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
-			    		}
+		    	if (self.fogMode && hero.follow) {
+		    		opacity = Math.max(opacity,hero.map[x][y].opacity);
+		    	}
+		    	if (self.fogOpponentsMode) {
+		    		for (var o=0; o<opponents.opponentNb; o++) {
+		    			if (opponents.opponents[o].follow)
+		    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
 		    		}
-		    		self.map[x][y].tempOpacity = opacity;
-			    	if (self.map[x][y].type==1) {
-						imgData.data[i] = r[self.map[x][y].altitude];
-			    		imgData.data[i+1] = g[self.map[x][y].altitude];
-			    		imgData.data[i+2] = b[self.map[x][y].altitude];
-			    		imgData.data[i+3] = 255*opacity;
-			    	}
-			    	else {
-					    imgData.data[i] = 66;
-			    		imgData.data[i+1] = 198;
-			    		imgData.data[i+2] = 255;
-		    			imgData.data[i+3] = 255*opacity;
-			    	}
+	    		}
+	    		self.map[x][y].tempOpacity = opacity;
+		    	if (self.map[x][y].type==1) {
+					imgData.data[i] = r[self.map[x][y].altitude];
+		    		imgData.data[i+1] = g[self.map[x][y].altitude];
+		    		imgData.data[i+2] = b[self.map[x][y].altitude];
+		    		imgData.data[i+3] = 255*opacity;
+		    	}
+		    	else {
+				    imgData.data[i] = 66;
+		    		imgData.data[i+1] = 198;
+		    		imgData.data[i+2] = 255;
+	    			imgData.data[i+3] = 255*opacity;
 			    }
 		    }
 		}
@@ -451,6 +442,19 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 				imgData.data[i+3] = 255*self.map[x][y].tempOpacity;
 			}
 	    }
+	    
+	    var x = hero.coordinates.x;
+    	var y = hero.coordinates.y;
+		var i = x*self.mapL*4 + y*4;
+
+		if (self.map[x][y].type!=2) {
+	
+			imgData.data[i] = 255;
+	    	imgData.data[i+1] = 0;
+	    	imgData.data[i+2] = 0;
+	    	imgData.data[i+3] = 255;
+    		opacity=255;
+    	}
 		ctx1.putImageData(imgData, 0, 0);
 
 		c2.width = self.mapL*5;
