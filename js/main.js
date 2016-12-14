@@ -281,7 +281,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var seuilLvL1 = 3;
 		//var seuilLvl2 = 4;
 
-		var lavaSize = self.mapL*Math.sqrt(2)/2-self.lavaStep;
+		var lavaSize = self.mapL*Math.sqrt(2)/2-2-self.lavaStep;
 
 		for (var i=0;i<=self.mapL-1;i++) {
 			for (var j=0;j<=self.mapH-1;j++) {
