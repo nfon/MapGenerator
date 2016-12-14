@@ -395,6 +395,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
 			    		}
 		    		}
+		    		self.map[x][y].tempOpacity = opacity;
 			    	if (self.map[x][y].type==1) {
 						imgData.data[i] = r[self.map[x][y].altitude];
 			    		imgData.data[i+1] = g[self.map[x][y].altitude];
@@ -408,42 +409,48 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    			imgData.data[i+3] = 255*opacity;
 			    	}
 			    }
-
-			    for (var t in items.items) {
-			    	var item = items.items[t];
-			    	if (item.coordinates.x == x && item.coordinates.y == y) {
-			    		if (item.grabbed) {
-							imgData.data[i] = 255;
-			    			imgData.data[i+1] = 140;
-			    			imgData.data[i+2] = 0;
-			    		}
-			    		else {
-			    			imgData.data[i] = 255;
-			    			imgData.data[i+1] = 215;
-			    			imgData.data[i+2] = 0;
-			    		}
-		    			imgData.data[i+3] = 255*opacity;
-			    	}
-			    }
-
-			    for (var o in opponents.opponents) {
-			    	var opponent = opponents.opponents[o];
-			    	if (opponent.coordinates.x == x && opponent.coordinates.y == y) {
-			    		if (opponent.health) {
-							imgData.data[i] = 244;
-			    			imgData.data[i+1] = 66;
-			    			imgData.data[i+2] = 194;
-			    		}
-			    		else {
-			    			imgData.data[i] = 0;
-			    			imgData.data[i+1] = 0;
-			    			imgData.data[i+2] = 0;
-			    		}
-		    			imgData.data[i+3] = 255*opacity;
-			    	}
-			    }
 		    }
 		}
+
+		for (var t in items.items) {
+	    	var item = items.items[t];
+	    	var x = item.coordinates.x;
+	    	var y = item.coordinates.y;
+    		var i = x*self.mapL*4 + y*4;
+    		if (self.map[x][y].type!=2) {
+	    		if (item.grabbed) {
+					imgData.data[i] = 255;
+	    			imgData.data[i+1] = 140;
+	    			imgData.data[i+2] = 0;
+	    		}
+	    		else {
+	    			imgData.data[i] = 255;
+	    			imgData.data[i+1] = 215;
+	    			imgData.data[i+2] = 0;
+	    		}
+				imgData.data[i+3] = 255*self.map[x][y].tempOpacity;
+			}
+	    }
+
+	    for (var o in opponents.opponents) {
+	    	var opponent = opponents.opponents[o];
+	    	var x = opponent.coordinates.x;
+	    	var y = opponent.coordinates.y;
+    		var i = x*self.mapL*4 + y*4;
+    		if (self.map[x][y].type!=2) {
+	    		if (opponent.health) {
+					imgData.data[i] = 244;
+	    			imgData.data[i+1] = 66;
+	    			imgData.data[i+2] = 194;
+	    		}
+	    		else {
+	    			imgData.data[i] = 0;
+	    			imgData.data[i+1] = 0;
+	    			imgData.data[i+2] = 0;
+	    		}
+				imgData.data[i+3] = 255*self.map[x][y].tempOpacity;
+			}
+	    }
 		ctx1.putImageData(imgData, 0, 0);
 
 		c2.width = self.mapL*5;
