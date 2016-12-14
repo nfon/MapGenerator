@@ -796,7 +796,7 @@ var Player = function() {
 			if (spec.type=="use")
 				self[spec.property] = Math.min(self[spec.property+"Max"],self[spec.property]+spec.value);
 		}
-    	displayMessage(self.name+" ("+self.id+") uses "+item.name,"#FFD700");
+    	displayMessage(self.name+" ("+self.id+") used "+item.name,"#FFD700");
 		self.updateWeight(-item.weight);
 		self.inventory.pop(item);
     }
@@ -1007,7 +1007,7 @@ var Player = function() {
 	    			}
     			}
 			}
-			displayMessage(self.name+" ("+self.id+") uses "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and cause "+damage+" sur "+closedOpponents[0].player.health,"#B22222");
+			displayMessage(self.name+" ("+self.id+") used "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and caused "+damage+" on "+closedOpponents[0].player.health,"#B22222");
 			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
 			if (closedOpponents[0].player.health==0) {
     			sounds.sounds["canon"].play();
