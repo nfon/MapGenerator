@@ -521,6 +521,30 @@ var Ui = function() {
 	this.tick();
 }
 
+var Sounds = function() {
+	this.sounds = [];
+	var self = this;
+
+	this.init = function() {
+		self.sounds["canon"]=new Sound("#canon");
+	}
+	self.init();
+}
+
+var Sound = function(elem) {
+	this.$elem = $(elem)[0];
+	var self = this;
+
+	this.play = function() {
+		self.$elem.currentTime = 0;
+		self.$elem.play();
+	}
+
+	this.stop = function() {
+		self.$elem.pause();
+	}
+}
+
 var GenericItems = function() {
 	this.genericItems = new Array();
 	var self = this;
@@ -877,8 +901,10 @@ var Player = function() {
 			}
 			displayMessage(self.name+" ("+self.id+") uses "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and cause "+damage+" sur "+closedOpponents[0].player.health,"#B22222");
 			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
-			if (closedOpponents[0].player.health==0)
+			if (closedOpponents[0].player.health==0) {
+    			sounds.sounds["canon"].play();
 				displayMessage(self.name+" ("+self.id+") killed "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+")","#B22222","#000000");
+			}
 
 		}
     }
@@ -909,7 +935,10 @@ var Player = function() {
     	if (self.water==0)
     		self.health = Math.max(0,round(self.health-0.1,2));
     	if (self.health==0)
+    	{
+    		sounds.sounds["canon"].play();
 			displayMessage(self.name+" ("+self.id+") died","#B22222","#000000");
+    	}
     }
 }
 
@@ -1151,6 +1180,7 @@ $(document).ready(function() {
 			cancelAnimationFrame(map.tick);
 		map.tick();
 
+		sounds = new Sounds();
 		var ui = new Ui();
 
 		map.$map.removeClass("hide");

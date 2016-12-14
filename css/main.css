@@ -96,3 +96,7 @@ canvas{
 .ui.dead {
 	background-color: grey;
 }
+
+audio {
+	display: none;
+}
