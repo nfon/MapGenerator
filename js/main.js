@@ -42,6 +42,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	this.map  = new Array();
 	this.mapL = mapL;
 	this.mapH = mapH;
+	this.lavaStep = 0;
+	this.lavaDelay = Date.now();;
 	this.heightMin = heightMin;
 	this.heightMax = heightMax;
 
@@ -275,6 +277,40 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		}
 	}
 
+	this.releaseLava = function() {
+		var seuilLvL1 = 3;
+		var seuilLvl2 = 4
+		for (var i=self.lavaStep;i<self.mapH-self.lavaStep;i++) {
+			self.map[i][self.lavaStep].type = 2;
+			self.map[i][self.mapL-1-self.lavaStep].type = 2;
+
+			if (getRandom(0,10)<seuilLvL1 && self.lavaStep+1<self.mapH)
+				self.map[i][self.lavaStep+1].type = 2;
+			if (getRandom(0,10)<seuilLvL1 && self.lavaStep+2<self.mapH)
+				self.map[i][self.mapH-2-self.lavaStep].type = 2;
+
+			if (getRandom(0,10)==seuilLvl2 && self.lavaStep+2<self.mapH)
+				self.map[i][self.lavaStep+2].type = 2;
+			if (getRandom(0,10)==seuilLvl2 && self.lavaStep+3<self.mapH)
+				self.map[i][self.mapH-3-self.lavaStep].type = 2;
+		}
+		for (var j=self.lavaStep;j<self.mapL-self.lavaStep;j++) {
+			self.map[self.lavaStep][j].type = 2;
+			self.map[self.mapL-1-self.lavaStep][j].type = 2;
+
+			if (getRandom(0,10)<seuilLvL1 && self.lavaStep+1<self.mapL)
+				self.map[self.lavaStep+1][j].type = 2;
+			if (getRandom(0,10)<seuilLvL1 && self.lavaStep+2<self.mapL)
+				self.map[self.mapL-2-self.lavaStep][j].type = 2;
+
+			if (getRandom(0,10)==seuilLvl2 && self.lavaStep+2<self.mapL)
+				self.map[self.lavaStep+2][j].type = 2;
+			if (getRandom(0,10)==seuilLvl2 && self.lavaStep+3<self.mapL)
+				self.map[self.mapL-3-self.lavaStep][j].type = 2;
+		}
+		self.lavaStep++;
+	}
+
 	this.lightSurroundingPlayer = function(o) {
 		if (o>=0)
 			var player = opponents.opponents[o];
@@ -317,6 +353,10 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var g = [198,255,214,181,150,115,79,56,52,153,255];
 		var b = [255,66,39,29,29,23,19,43,42,153,255];
 
+		var rLava = [249,249];
+		var gLava = [150,76];
+		var bLava = [37,37];
+
 		var c2 = $("#map>canvas")[0];
 		var ctx2 = c2.getContext("2d");
 
@@ -330,69 +370,78 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    var y = (i/4)%self.mapL;
 		    var x = Math.floor(i/4/self.mapL);
 		    var opacity = self.map[x][y].opacity;
-		    if (hero.coordinates.x==x && hero.coordinates.y==y) {
-				imgData.data[i] = 255;
-	    		imgData.data[i+1] = 0;
-	    		imgData.data[i+2] = 0;
+		    if (self.map[x][y].type==2) {
+		    	imgData.data[i] = rLava[getRandomNormal(0,1)];
+	    		imgData.data[i+1] = gLava[getRandomNormal(0,1)];
+	    		imgData.data[i+2] = bLava[getRandomNormal(0,1)];;
 	    		imgData.data[i+3] = 255;
 	    		opacity=255;
 		    }
 		    else {
-		    	if (self.fogMode && hero.follow) {
-		    		opacity = Math.max(opacity,hero.map[x][y].opacity);
-		    	}
-		    	if (self.fogOpponentsMode) {
-		    		for (var o=0; o<opponents.opponentNb; o++) {
-		    			if (opponents.opponents[o].follow)
-		    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
+				if (hero.coordinates.x==x && hero.coordinates.y==y) {
+					imgData.data[i] = 255;
+		    		imgData.data[i+1] = 0;
+		    		imgData.data[i+2] = 0;
+		    		imgData.data[i+3] = 255;
+		    		opacity=255;
+			    }
+			    else {
+			    	if (self.fogMode && hero.follow) {
+			    		opacity = Math.max(opacity,hero.map[x][y].opacity);
+			    	}
+			    	if (self.fogOpponentsMode) {
+			    		for (var o=0; o<opponents.opponentNb; o++) {
+			    			if (opponents.opponents[o].follow)
+			    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
+			    		}
 		    		}
-	    		}
-		    	if (self.map[x][y].type==1) {
-					imgData.data[i] = r[self.map[x][y].altitude];
-		    		imgData.data[i+1] = g[self.map[x][y].altitude];
-		    		imgData.data[i+2] = b[self.map[x][y].altitude];
-		    		imgData.data[i+3] = 255*opacity;
-		    	}
-		    	else {
-				    imgData.data[i] = 66;
-		    		imgData.data[i+1] = 198;
-		    		imgData.data[i+2] = 255;
-	    			imgData.data[i+3] = 255*opacity;
-		    	}
-		    }
+			    	if (self.map[x][y].type==1) {
+						imgData.data[i] = r[self.map[x][y].altitude];
+			    		imgData.data[i+1] = g[self.map[x][y].altitude];
+			    		imgData.data[i+2] = b[self.map[x][y].altitude];
+			    		imgData.data[i+3] = 255*opacity;
+			    	}
+			    	else {
+					    imgData.data[i] = 66;
+			    		imgData.data[i+1] = 198;
+			    		imgData.data[i+2] = 255;
+		    			imgData.data[i+3] = 255*opacity;
+			    	}
+			    }
 
-		    for (var t in items.items) {
-		    	var item = items.items[t];
-		    	if (item.coordinates.x == x && item.coordinates.y == y) {
-		    		if (item.grabbed) {
-						imgData.data[i] = 255;
-		    			imgData.data[i+1] = 140;
-		    			imgData.data[i+2] = 0;
-		    		}
-		    		else {
-		    			imgData.data[i] = 255;
-		    			imgData.data[i+1] = 215;
-		    			imgData.data[i+2] = 0;
-		    		}
-	    			imgData.data[i+3] = 255*opacity;
-		    	}
-		    }
+			    for (var t in items.items) {
+			    	var item = items.items[t];
+			    	if (item.coordinates.x == x && item.coordinates.y == y) {
+			    		if (item.grabbed) {
+							imgData.data[i] = 255;
+			    			imgData.data[i+1] = 140;
+			    			imgData.data[i+2] = 0;
+			    		}
+			    		else {
+			    			imgData.data[i] = 255;
+			    			imgData.data[i+1] = 215;
+			    			imgData.data[i+2] = 0;
+			    		}
+		    			imgData.data[i+3] = 255*opacity;
+			    	}
+			    }
 
-		    for (var o in opponents.opponents) {
-		    	var opponent = opponents.opponents[o];
-		    	if (opponent.coordinates.x == x && opponent.coordinates.y == y) {
-		    		if (opponent.health) {
-						imgData.data[i] = 244;
-		    			imgData.data[i+1] = 66;
-		    			imgData.data[i+2] = 194;
-		    		}
-		    		else {
-		    			imgData.data[i] = 0;
-		    			imgData.data[i+1] = 0;
-		    			imgData.data[i+2] = 0;
-		    		}
-	    			imgData.data[i+3] = 255*opacity;
-		    	}
+			    for (var o in opponents.opponents) {
+			    	var opponent = opponents.opponents[o];
+			    	if (opponent.coordinates.x == x && opponent.coordinates.y == y) {
+			    		if (opponent.health) {
+							imgData.data[i] = 244;
+			    			imgData.data[i+1] = 66;
+			    			imgData.data[i+2] = 194;
+			    		}
+			    		else {
+			    			imgData.data[i] = 0;
+			    			imgData.data[i+1] = 0;
+			    			imgData.data[i+2] = 0;
+			    		}
+		    			imgData.data[i+3] = 255*opacity;
+			    	}
+			    }
 		    }
 		}
 		ctx1.putImageData(imgData, 0, 0);
@@ -409,6 +458,20 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.tick = function() {
 		if (gameOn) {
+			if (self.lavaStep) {
+				var delay = 5000;
+				if (self.lavaStep>=self.mapH/4)
+					delay = 10000;
+				if (self.lavaStep>=self.mapH/3)
+					delay = 10000000000;
+
+				if ((Date.now()-self.lavaDelay>delay) ) {
+					self.releaseLava();
+					self.lavaDelay = Date.now();
+				}
+			}
+
+			
 			self.draw();
 			self.ticker = requestAnimationFrame(self.tick);
 		}
@@ -561,6 +624,7 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:100}],1.5,"medipack"));
 		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:200}],2,"large medipack"));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:20,range:2,accuracy:1},1,"spear"));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:2,accuracy:1},1,"sword"));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:10,accuracy:0.6},3,"bow"));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:40,range:7,accuracy:0.8},0.5,"gun"));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:70,range:3,accuracy:0.2},3,"shotgun"));
@@ -735,6 +799,8 @@ var Player = function() {
     		self.food=Math.max(0,round(self.food-round(coef*map.map[self.coordinates.x][self.coordinates.y].altitude,2),2));
     		if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
 	    		self.water=Math.max(0,round(self.water-coef,2));
+    		if (map.map[self.coordinates.x][self.coordinates.y].type==2)
+    			self.health = Math.max(0,self.health-50);
     		self.checkHealth();
     		self.getItem(items.hasItem(self.coordinates));
     		self.getInventory(self.hasOpponent(0,self.coordinates));
@@ -834,6 +900,31 @@ var Player = function() {
 		});
 
 		return closedItems;
+    }
+
+    this.getClosedLava = function() {
+    	var x = self.coordinates.x;
+		var y = self.coordinates.y;
+		var range = map.map[x][y].altitude*self.vision;
+
+		var closedLava = [];
+		
+		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
+			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
+				var powX = Math.pow(i-x,2);
+				var powY = Math.pow(j-y,2);
+				if ( powX + powY < Math.pow(range,2) )
+					if (map.map[i][j].type==2)
+						closedLava.push({coordinates:{x:i,y:j},distance:getDistance({x:i,y:j},self.coordinates)});
+			}
+		}
+
+
+		closedLava.sort(function(a, b) {
+		    return a.distance - b.distance;
+		});
+
+		return closedLava;
     }
 
     this.getDirection = function(coordinates) {
@@ -1098,24 +1189,28 @@ var Opponent = function (id,name,coordinates) {
 
     this.move = function() {
     	var direction = getRandom(0,8);
-    	var closedOpponents = self.getClosedOpponents(2);
-    	if (closedOpponents.length) {
-    		if (closedOpponents[0].player.health) {
-    			if (self.health>self.healthLimit)
-					direction = self.getDirection(closedOpponents[0].player.coordinates);
-    			else
-    				direction = self.getReverseDirection(direction);
-    		}
-    		else {
-    			if (closedOpponents[0].player.inventory.length)
-					direction = self.getDirection(closedOpponents[0].player.coordinates);
-    		}
-    	}
+    	var closedLava = self.getClosedLava();
+    	if (closedLava.length)
+			direction = self.getReverseDirection(self.getDirection(closedLava[0].coordinates));
     	else {
-    		var closedItems = self.getClosedItems();//warning : if the player is fully loaded he will probably stay static
-    		if (closedItems.length)
-    			direction = self.getDirection(closedItems[0].item.coordinates);
-    	}
+	    	var closedOpponents = self.getClosedOpponents(2);
+	    	if (closedOpponents.length) {
+	    		if (closedOpponents[0].player.health) {
+					direction = self.getDirection(closedOpponents[0].player.coordinates);
+	    			if (self.health<=self.healthLimit)
+	    				direction = self.getReverseDirection(direction);
+	    		}
+	    		else {
+	    			if (closedOpponents[0].player.inventory.length)
+						direction = self.getDirection(closedOpponents[0].player.coordinates);
+	    		}
+	    	}
+	    	else {
+	    		var closedItems = self.getClosedItems();//warning : if the player is fully loaded he will probably stay static
+	    		if (closedItems.length)
+	    			direction = self.getDirection(closedItems[0].item.coordinates);
+	    	}
+	    }
 
 		var x = self.coordinates.x;
 		var y = self.coordinates.y;
