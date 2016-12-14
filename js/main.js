@@ -407,12 +407,14 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 }
 
 var Ui = function() {
+	this.$board = $("#board");
 	this.$tracker = $("#tracker");
 	this.last = Date.now();
 	this.ticker;
  	var self = this;
 
 	this.updateTracker = function(){
+		var playerAlive = [];
 		for (var i=-1;i<opponents.opponentNb;i++) {
 			var $playerTracker;
 			var player;
@@ -430,6 +432,7 @@ var Ui = function() {
 	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
 	    	}
 	    	else {
+	    		playerAlive.push(player);
 	    		$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
 	    		$playerTracker.find(".attack").text(player.attack);
 	    		$playerTracker.find(".range").text(player.range);
@@ -449,7 +452,11 @@ var Ui = function() {
 	    	$playerTracker.find(".inventory").text(inventory);
 	    	$playerTracker.find("input").prop(player.follow?'checked':'');
 		}
-    };
+		if (playerAlive.length==1)
+			self.$board.find("#alive").text("WINNER : "+playerAlive[0].name+ "("+playerAlive[0].id+")");
+		else
+			self.$board.find("#alive").text(playerAlive.length+" players alive");
+    }
 
     this.getInfoCase = function(x,y) {
 		self.$tracker.find(".active").removeClass('active');
@@ -467,6 +474,11 @@ var Ui = function() {
 	    	if (items.items[o].coordinates.x == x && items.items[o].coordinates.y == y)
 	    		displayMessage(items.items[o]);
 	    }
+    }
+
+    this.clean = function() {
+    	self.$tracker.html("");
+    	self.$board.html("");
     }
 
     this.bind = function() {
@@ -496,6 +508,7 @@ var Ui = function() {
 		self.ticker = requestAnimationFrame(self.tick);
 	}
 
+	this.clean();
 	this.bind();
 	this.tick();
 }
