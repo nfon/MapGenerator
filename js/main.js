@@ -389,24 +389,24 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    var y = (i/4)%self.mapL;
 		    var x = Math.floor(i/4/self.mapL);
 		    var opacity = self.map[x][y].opacity;
-		    if (self.map[x][y].type==2) {
+		    
+	    	if (self.fogMode && hero.follow)
+	    		opacity = Math.max(opacity,hero.map[x][y].opacity);
+	    	if (self.fogOpponentsMode) {
+	    		for (var o=0; o<opponents.opponentNb; o++) {
+	    			if (opponents.opponents[o].follow)
+	    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
+	    		}
+    		}
+    		self.map[x][y].tempOpacity = opacity;
+
+    		if (self.map[x][y].type==2) {
 		    	imgData.data[i] = rLava[getRandomNormal(0,2)];
 	    		imgData.data[i+1] = gLava[getRandomNormal(0,2)];
 	    		imgData.data[i+2] = bLava[getRandomNormal(0,2)];;
-	    		imgData.data[i+3] = 255;
-	    		opacity=255;
+	    		imgData.data[i+3] = 255*opacity;
 		    }
 		    else {
-		    	if (self.fogMode && hero.follow) {
-		    		opacity = Math.max(opacity,hero.map[x][y].opacity);
-		    	}
-		    	if (self.fogOpponentsMode) {
-		    		for (var o=0; o<opponents.opponentNb; o++) {
-		    			if (opponents.opponents[o].follow)
-		    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
-		    		}
-	    		}
-	    		self.map[x][y].tempOpacity = opacity;
 		    	if (self.map[x][y].type==1) {
 					imgData.data[i] = r[self.map[x][y].altitude];
 		    		imgData.data[i+1] = g[self.map[x][y].altitude];
