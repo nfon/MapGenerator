@@ -461,7 +461,6 @@ var Ui = function() {
 		if (playerAlive.length==1) {
 			self.$board.find("#alive").text("WINNER : "+playerAlive[0].name+ "("+playerAlive[0].id+")");
 			displayMessage(playerAlive[0].name+" wins!","#000000","FFD700");
-			cancelAnimationFrame(self.tick);
 		}
 		else
 			self.$board.find("#alive").text(playerAlive.length+" players alive");
