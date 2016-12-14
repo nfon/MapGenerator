@@ -6,9 +6,15 @@ function clearMessage() {
 	$("#messages").html("");
 }
 
-function displayMessage(msg) {
-	if (debugMode)
-		$("#messages").append(msg+"</br>");
+function displayMessage(msg,color,background) {
+	if (debugMode) {
+		if (color == undefined)
+			color="#000000";
+		if (background == undefined)
+			background="#FFFFFF";
+		$("#messages").append("<span style='background-color:"+background+"; color:"+color+"'>"+msg+"</span></br>");
+		$("#messages").scrollTop($("#messages")[0].scrollHeight);
+	}
 	else
 		console.log(msg);
 }
@@ -52,17 +58,17 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
     this.create = function(){
 		clearMessage();
-		displayMessage("Map generation");
+		displayMessage("Map generation","#7FFF00");
 		self.generate();
-		displayMessage("Creation of the summits");
+		displayMessage("Creation of the summits","#7FFF00");
 		self.generateSummits();
-		displayMessage("Creation of the moutains");
+		displayMessage("Creation of the moutains","#7FFF00");
 		self.generateMountains();
-		displayMessage("Creation of the sources");
+		displayMessage("Creation of the sources","#7FFF00");
 		self.generateLakesSource();
-		displayMessage("Creation of the lakes");
+		displayMessage("Creation of the lakes","#7FFF00");
 		self.generateLakes();
-		displayMessage("Creation of the rivers");
+		displayMessage("Creation of the rivers","#7FFF00");
 		self.generateRivers();
 	}
 
@@ -96,7 +102,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 
 	this.generateRelief = function(val) {
-		displayMessage("Generate level "+val);
+		displayMessage("Generate level "+val,"#7FFF00");
 		for (var i=0;i<self.mapH;i++) {
 			for (var j=0;j<self.mapL;j++) {
 				if (self.map[i][j].altitude==val) {
@@ -141,7 +147,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 
 	this.generateLake = function(val) {
-		displayMessage("Generate River level "+val);
+		displayMessage("Generate River level "+val,"#7FFF00");
 		for (var i=0;i<self.mapH;i++) {
 			for (var j=0;j<self.mapL;j++) {
 				if (self.map[i][j].type==0 && self.map[i][j].altitude==val) {
@@ -478,7 +484,7 @@ var Ui = function() {
 
     this.clean = function() {
     	self.$tracker.html("");
-    	self.$board.html("");
+    	self.$board.find("#alive").html("");
     }
 
     this.bind = function() {
@@ -635,7 +641,7 @@ var Player = function() {
     this.getItem = function(item) {
     	if (item) {
     		if ( (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
-	    		displayMessage(self.name+" ("+self.id+") get item "+item.name);
+	    		displayMessage(self.name+" ("+self.id+") get item "+item.name,"#FFD700");
 	    		if (item.weight+self.weight<=self.weightMax) {
 		    		self.inventory.push(item);
 		    		self.updateWeight(item.weight);
@@ -659,7 +665,7 @@ var Player = function() {
 
     this.getInventory = function(player) {
     	if (player) {
-	    	displayMessage(self.name+" ("+self.id+") stealing "+player.name+" ("+player.id+")'s inventory");
+	    	displayMessage(self.name+" ("+self.id+") stealing "+player.name+" ("+player.id+")'s inventory","#FFD700");
 	    	for (i in player.inventory) {
 	    		self.getItem(player.inventory[i]);
     			player.inventory.pop(player.inventory[i]);//empty the inventory so no one can steal what is left
@@ -864,8 +870,11 @@ var Player = function() {
 	    			}
     			}
 			}
-			displayMessage(self.name+" ("+self.id+") use "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and cause "+damage+" sur "+closedOpponents[0].player.health);
+			displayMessage(self.name+" ("+self.id+") uses "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and cause "+damage+" sur "+closedOpponents[0].player.health,"#B22222");
 			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
+			if (closedOpponents[0].player.health==0)
+				displayMessage(self.name+" ("+self.id+") killed "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+")","#B22222","#000000");
+
 		}
     }
 
@@ -928,7 +937,7 @@ var Hero = function(name,coordinates) {
 	}
 
 	this.tick = function() {
-		if (Date.now()-self.last>self.delay) {
+		if (Date.now()-self.last>self.delay && self.health) {
 			self.last = Date.now();
 			if (self.keydown != -1 && map && map.initialized && self.health)
 				self.move(self.keydown-37);
