@@ -650,31 +650,38 @@ var GenericItems = function() {
 
 	this.generate = function() {
 		var i = 0;
-		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:50}],1,"small medipack"));
-		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:100}],1.5,"medipack"));
-		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:200}],2,"large medipack"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:20,range:2,accuracy:1},1,"spear"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:2,accuracy:1},1,"sword"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:10,accuracy:0.6},3,"bow"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:40,range:7,accuracy:0.8},0.5,"gun"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:70,range:3,accuracy:0.2},3,"shotgun"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:50,range:20,accuracy:0.8},4,"longneck"));
-		self.genericItems.push(new GenericItem(i++,"weapon",{attack:80,range:20,accuracy:0.6},8,"bazooka"));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour"));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular"));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack"));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin"));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub"));
+		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:50}],1,"small medipack",10));
+		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:100}],1.5,"medipack",8));
+		self.genericItems.push(new GenericItem(i++,"health",[{property:"health",type:"use",value:200}],2,"large medipack",5));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:15,range:2,accuracy:1},1,"baseball bat",8));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:20,range:2,accuracy:1},1,"spear",6));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:2,accuracy:1},1,"sword",5));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:30,range:10,accuracy:0.6,ammo:"arrows"},3,"bow",7));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:40,range:7,accuracy:0.8,ammo:"bullets"},0.5,"gun",4));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:70,range:3,accuracy:0.2,ammo:"shotgun shell"},3,"shotgun",3));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:50,range:20,accuracy:0.8,ammo:"riffle ammo"},4,"longneck riffle",2));
+		self.genericItems.push(new GenericItem(i++,"weapon",{attack:80,range:20,accuracy:0.6,ammo:"rocket"},8,"bazooka",1));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:20},0.1,"arrows",14));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:24},0.1,"bullets",8));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:6},0.1,"shotgun shell",6));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:8},0.1,"riffle ammo",4));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:2},0.1,"rocket",2));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour",9));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular",10));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack",10));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin",7));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub",7));
 	}
 	this.generate();
 }
 
-var GenericItem = function(id,type,specs,weight,name) {
+var GenericItem = function(id,type,specs,weight,name,frequency) {
 	this.id = id;
 	this.type = type;
 	this.specs = $.extend(true, [], specs);;
 	this.weight = weight;
     this.name = name;
+    this.frequency = frequency;//%
     var self = this;
 }
 
@@ -684,11 +691,13 @@ var Items = function(itemNb) {
 	var self = this;
 
 	this.generate = function() {
+		var weights = genericItems.genericItems.map((item) => (item.frequency));
+		
 		for (var i=0; i<self.itemNb; i++) {
 			var x = getRandom(0,map.mapH-1);
 			var y = getRandom(0,map.mapL-1);
-			var o = getRandom(0,genericItems.genericItems.length-1);
-			self.items.push(new Item($.extend(true, [], genericItems.genericItems[o]),{x:x,y:y},false));
+			var item = chance.weighted(genericItems.genericItems, weights);
+			self.items.push(new Item($.extend(true, [],item),{x:x,y:y},false));
 		}
 	}
 
@@ -766,7 +775,7 @@ var Player = function() {
 
     this.getItem = function(item) {
     	if (item) {
-    		if ( (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
+    		if ( item.type=="ammo" || (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
 	    		displayMessage(self.name+" ("+self.id+") get item "+item.name,"#FFD700");
 	    		if (item.weight+self.weight<=self.weightMax) {
 		    		self.inventory.push(item);
@@ -808,6 +817,21 @@ var Player = function() {
     	return result.length;
     }
 
+    this.getAmmo = function(item) {
+    	if (item.specs["ammo"]) {
+    		var ammos = self.inventory.filter(function(item){
+	    		return item.type=="ammo";
+    		});
+    		for (i in ammos) {
+	    		if (ammos[i].name==item.specs["ammo"])
+    				return ammos[i];
+			}
+			return {id:-1, specs:{quantity:0}};
+		}
+		else 
+			return {id:-1, specs:{quantity:1}};
+    }
+
     this.useItem = function(id) {
     	var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
     	for (var i in item.specs) {
@@ -818,6 +842,18 @@ var Player = function() {
     	displayMessage(self.name+" ("+self.id+") used "+item.name,"#FFD700");
 		self.updateWeight(-item.weight);
 		self.inventory.pop(item);
+    }
+
+    this.useAmmo = function(id) {
+    	if (id!=-1) {
+    		var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
+    		item.specs.quantity-=1;
+    		displayMessage(self.name+" ("+self.id+") used 1 ammo (/"+item.specs.quantity+") "+item.name,"red");
+	    	if (item.quantity<=0) {
+				self.updateWeight(-item.weight);
+				self.inventory.pop(item);
+	    	}
+    	}
     }
 
     this.updateWeight = function(weight) {
@@ -1024,13 +1060,15 @@ var Player = function() {
 	    	var range = self.range;
 	    	var damage = round(self.attack*self.accuracy*self.range/Math.max(1,closedOpponents[0].distance),2);
 	    	var bestWeapon = {name:"fist"};
+	    	var bestWeaponAmmo = {id:-1, specs:{quantity:1}};
 
 	    	var weapons = self.inventory.filter(function(item){
 	    		return item.type=="weapon";
 	    	});
 	    	for (var w in weapons) {
 	    		var weapon = weapons[w];
-    			if (weapon.specs.range <= closedOpponents[0].distance) {
+	    		var ammo = self.getAmmo(weapon);
+    			if (weapon.specs.range <= closedOpponents[0].distance && ammo.specs.quantity>0) {
 	    			var tempAttack = weapon.specs.attack;
 	    			var tempRange = weapon.specs.range;
 	    			var tempAccuracy = weapon.specs.accuracy;
@@ -1041,11 +1079,13 @@ var Player = function() {
 	    			if (tempDamage>damage) {
 	    				damage = round(tempDamage,2);
 	    				bestWeapon = weapon;
+	    				bestWeaponAmmo = ammo;
 	    			}
     			}
 			}
 			displayMessage(self.name+" ("+self.id+") used "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and caused "+damage+" on "+closedOpponents[0].player.health,"#B22222");
 			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
+			self.useAmmo(bestWeaponAmmo.id);
 			if (closedOpponents[0].player.health==0) {
     			sounds.sounds["canon"].play();
 				displayMessage(self.name+" ("+self.id+") killed "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+")","#B22222","#000000");
