@@ -545,7 +545,11 @@ var Ui = function() {
 	    	}
 	    	var inventory = "";
 	    	for (o in player.inventory) {
-	    		inventory+=player.inventory[o].name+", ";
+	    		var item = player.inventory[o];
+	    		inventory+=item.name
+	    		if (item.type=="ammo")
+	    			inventory+="("+item.specs.quantity+")";
+    			inventory+=", ";
 	    	}
 	    	if (inventory.length)
 	    		inventory = inventory.substring(0,inventory.length-2);
@@ -661,11 +665,11 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:70,range:3,accuracy:0.2,ammo:"shotgun shell"},3,"shotgun",3));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:50,range:20,accuracy:0.8,ammo:"riffle ammo"},4,"longneck riffle",2));
 		self.genericItems.push(new GenericItem(i++,"weapon",{attack:80,range:20,accuracy:0.6,ammo:"rocket"},8,"bazooka",1));
-		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:20},0.1,"arrows",14));
-		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:24},0.1,"bullets",8));
-		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:6},0.1,"shotgun shell",6));
-		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:8},0.1,"riffle ammo",4));
-		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:2},0.1,"rocket",2));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:20},2,"arrows",14));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:24},2.4,"bullets",8));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:6},0.6,"shotgun shell",6));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:8},0.8,"riffle ammo",4));
+		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:2},0.8,"rocket",2));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour",9));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack",10));
@@ -778,19 +782,34 @@ var Player = function() {
     		if ( item.type=="ammo" || (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
 	    		displayMessage(self.name+" ("+self.id+") get item "+item.name,"#FFD700");
 	    		if (item.weight+self.weight<=self.weightMax) {
-		    		self.inventory.push(item);
-		    		self.updateWeight(item.weight);
-		    		if (item.type=="object") {
-			    		for (var i in item.specs) {
-			    			var spec = item.specs[i];
-			    			if (spec.type=="permanent") {
-			    				self[spec.property] = Math.max(self[spec.property],spec.value);
-			    			}
-			    			if (spec.type=="cumul") {
-			    				self[spec.property] += spec.value;
-			    			}
-			    		}
-			    	}
+		    		if (item.type=="ammo") {
+		    			if (self.hasItem(item.id)) {
+    						var ammo = $.grep(self.inventory, function(e){ return e.id == item.id; })[0];
+    						ammo.specs.quantity+=item.specs.quantity;
+    						ammo.weight+=item.weight;
+		    				self.updateWeight(item.weight);
+		    			}
+		    			else {
+		    				self.updateWeight(item.weight);
+		    				self.inventory.push(item);
+		    			}
+		    		}
+		    		else {
+		    			self.updateWeight(item.weight);
+		    			self.inventory.push(item);
+						if (item.type=="object") {
+				    		for (var i in item.specs) {
+				    			var spec = item.specs[i];
+				    			if (spec.type=="permanent") {
+				    				self[spec.property] = Math.max(self[spec.property],spec.value);
+				    			}
+				    			if (spec.type=="cumul") {
+				    				self[spec.property] += spec.value;
+				    			}
+				    		}
+				    	}
+		    		}
+		    		
 			    	return true;
 		    	}
 		    }
@@ -847,12 +866,12 @@ var Player = function() {
     this.useAmmo = function(id) {
     	if (id!=-1) {
     		var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
+			self.updateWeight(-(item.weight/item.specs.quantity));
     		item.specs.quantity-=1;
     		displayMessage(self.name+" ("+self.id+") used 1 ammo (/"+item.specs.quantity+") "+item.name,"red");
-	    	if (item.quantity<=0) {
-				self.updateWeight(-item.weight);
+
+	    	if (item.quantity<=0)
 				self.inventory.pop(item);
-	    	}
     	}
     }
 
