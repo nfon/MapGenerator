@@ -1421,6 +1421,7 @@ $(document).ready(function() {
 		var ui = new Ui();
 
 		map.$map.removeClass("hide");
+		$("#legend").removeClass("hide");
 		$("#discovery").removeClass("hide");
 		$("#speedControl").removeClass("hide");
 		return false;
