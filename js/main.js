@@ -877,7 +877,7 @@ var Player = function() {
     }
 
     this.updateWeight = function(weight) {
-    	self.weight+=weight;
+    	self.weight=round(self.weight+weight,2);
     }
 
     this.updatePlayer = function(coef) {
@@ -1088,7 +1088,8 @@ var Player = function() {
 	    	for (var w in weapons) {
 	    		var weapon = weapons[w];
 	    		var ammo = self.getAmmo(weapon);
-    			if (weapon.specs.range <= closedOpponents[0].distance && ammo.specs.quantity>0) {
+
+    			if (weapon.specs.range >= closedOpponents[0].distance && ammo.specs.quantity>0) {
 	    			var tempAttack = weapon.specs.attack;
 	    			var tempRange = weapon.specs.range;
 	    			var tempAccuracy = weapon.specs.accuracy;
