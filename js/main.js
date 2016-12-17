@@ -1356,7 +1356,16 @@ $(document).ready(function() {
 	});
 
 	$("#pause").on("click",function(){
-		gameSpeed=0;
+		gameSpeed=99999999999999999;
+		$(this).addClass("hide");
+		$("#play").removeClass("hide");
+		$("#speed").text(0);
+	});
+
+	$("#play").on("click",function(){
+		gameSpeed=1;
+		$(this).addClass("hide");
+		$("#pause").removeClass("hide");
 		$("#speed").text(gameSpeed);
 	});
 
