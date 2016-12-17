@@ -1,6 +1,7 @@
 var map;
 var genericItems;
 var gameOn=false;
+var gameSpeed = 1;
 var debugMode = false;
 
 function clearMessage() {
@@ -495,7 +496,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 				if (self.lavaStep>=self.mapH/3)
 					delay = 10000000000;
 
-				if ((Date.now()-self.lavaDelay>delay) ) {
+				if ((Date.now()-self.lavaDelay>delay*gameSpeed) ) {
 					self.releaseLava();
 					self.lavaDelay = Date.now();
 				}
@@ -611,7 +612,7 @@ var Ui = function() {
 	this.tick = function() {
 		if (gameOn) {
 			var delay = 1000;
-			if (Date.now()-self.last>delay) {
+			if (Date.now()-self.last>delay*gameSpeed) {
 				self.last = Date.now();
 				self.updateTracker();
 			}
@@ -1181,7 +1182,7 @@ var Hero = function(name,coordinates) {
 
 	this.tick = function() {
 		if (gameOn) {
-			if (Date.now()-self.last>self.delay && self.health) {
+			if (Date.now()-self.last>self.delay*gameSpeed && self.health) {
 				self.last = Date.now();
 				if (self.keydown != -1 && map && map.initialized && self.health)
 					self.move(self.keydown-37);
@@ -1261,7 +1262,7 @@ var Opponents = function(opponentNb) {
 
 	this.tick = function() {
 		if (gameOn) {
-			if (Date.now()-self.lastOpponentMove>self.delayOpponent) {
+			if (Date.now()-self.lastOpponentMove>self.delayOpponent*gameSpeed) {
 				self.lastOpponentMove = Date.now();
 				for (var i=0; i<self.opponentNb; i++) {
 					if (self.opponents[i].health) {
@@ -1347,6 +1348,22 @@ $(document).ready(function() {
 	$("#lava").on("click",function(){
 		map.releaseLava();
 	});
+
+	$("#slower").on("click",function(){
+		gameSpeed+=0.1;
+		$("#speed").text("x"+round( (2-gameSpeed),2));
+	});
+
+	$("#pause").on("click",function(){
+		gameSpeed=0;
+		$("#speed").text(gameSpeed);
+	});
+
+	$("#faster").on("click",function(){
+		gameSpeed-=0.1;
+		$("#speed").text("x"+round( (2-gameSpeed),2));
+	});
+
 	$("#mapSettings").on("submit",function(evt){
 		mapH = parseInt($("input[name=mapHeight]").val(),10);
 		mapL = parseInt($("input[name=mapWidth]").val(),10);
@@ -1403,7 +1420,8 @@ $(document).ready(function() {
 		var ui = new Ui();
 
 		map.$map.removeClass("hide");
-		
+		$("#discovery").removeClass("hide");
+		$("#speedControl").removeClass("hide");
 		return false;
 	});
 });
