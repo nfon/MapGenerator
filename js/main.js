@@ -782,7 +782,7 @@ var Player = function() {
     	if (item) {
     		if ( item.type=="ammo" || (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
 	    		displayMessage(self.name+" ("+self.id+") get item "+item.name,"#FFD700");
-	    		if (item.weight+self.weight<=self.weightMax) {
+	    		if (item.weight+self.weight<=self.weightMax || item.name=="backpack" && !self.hasItemByName("backpack")) {
 		    		if (item.type=="ammo") {
 		    			if (self.hasItem(item.id)) {
     						var ammo = $.grep(self.inventory, function(e){ return e.id == item.id; })[0];
@@ -834,6 +834,13 @@ var Player = function() {
     	var result = [];
     	if (self.inventory.length)
     		result = $.grep(self.inventory, function(e){ return e.id == id; });
+    	return result.length;
+    }
+
+    this.hasItemByName = function(name) {
+    	var result = [];
+    	if (self.inventory.length)
+    		result = $.grep(self.inventory, function(e){ return e.name == name; });
     	return result.length;
     }
 
@@ -1128,11 +1135,11 @@ var Player = function() {
 
 
     this.checkHealth = function() {
-    	if (self.hasItem(0) && (self.health<self.healthMax-50  || self.health < self.healthLimit) )
+    	if (self.hasItemByName("small medipack") && (self.health<self.healthMax-50  || self.health < self.healthLimit) )
     		self.useItem(0);
-    	if (self.hasItem(1) && (self.health<self.healthMax-100 || self.health < self.healthLimit) )
+    	if (self.hasItemByName("medipack") && (self.health<self.healthMax-100 || self.health < self.healthLimit) )
     		self.useItem(1);
-    	if (self.hasItem(2) && (self.health<self.healthMax-200 || self.health < self.healthLimit) )
+    	if (self.hasItemByName("large medipack") && (self.health<self.healthMax-200 || self.health < self.healthLimit) )
     		self.useItem(2);
     	if (self.food<5)
     		self.health = Math.max(0,round(self.health-0.1,2));
