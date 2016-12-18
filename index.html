@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
     <title>Map Generator</title>
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 
@@ -10,63 +11,97 @@
 	<h1>Map Generator</h1>
 	<iframe src="https://ghbtns.com/github-btn.html?user=nfon&repo=MapGenerator&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
 	<iframe src="https://ghbtns.com/github-btn.html?user=nfon&repo=MapGenerator&type=watch&count=true&v=2" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
-	<div class="form">
-		<form id="mapSettings">
-			<div>
-				<label for="mapHeight">Map Height</label>
-				<input type="number" min="10" max="10000" name="mapHeight" value="100">
-			</div>
-			<div>
-				<label for="mapWidth">Map Width</label>
-				<input type="number" min="10" max="10000" name="mapWidth" value="100">
-			</div>
-			<div>
-				<label for="heightMax">Height Max</label>
-				<input type="number" min="1" max="10" name="heightMax" value="10">
-			</div>
-			<div>
-				<label for="heightMin">Height Min</label>
-				<input type="number" min="0" max="10" name="heightMin" value="0">
-			</div>
-			<div>
-				<label for="summitNb">Number of summits</label>
-				<input type="number" min="0" max="20" name="summitNb" value="5">
-			</div>
-			<div>
-				<label for="riverNb">Number of rivers</label>
-				<input type="number" min="0" max="20" name="riverNb" value="2">
-			</div>
-			<div>
-				<label for="lakeNb">Number of lakes</label>
-				<input type="number" min="0" max="20" name="lakeNb" value="1">
-			</div>
-			<div>
-				<label for="itemNb">Number of items</label>
-				<input type="number" min="0" max="100" name="itemNb" value="100">
-			</div>
-			<div>
-				<label for="name">Your character's name</label>
-				<input type="text" min="1" max="20" name="name" value="Jack">
-			</div>
-			<div>
-				<label for="opponentNb">Number of opponents</label>
-				<input type="number" min="0" max="20" name="opponentNb" value="10">
-			</div>
-			<div>
-				<label for="fogMode">Fog of war</label>
-				<input type="checkbox" name="fogMode" checked="checked">
-			</div>
-			<div>
-				<label for="fogOpponentsMode">Fog of war on opponents</label>
-				<input type="checkbox" name="fogOpponentsMode" checked="checked">
-			</div>
-			<div>
-				<label for="debugMode">Debug Mode</label>
-				<input type="checkbox" name="debugMode" checked="checked">
-			</div>
-			<input type="submit" value="Generate">
-			<input id="lava" type="button" value="Release Lava">
-		</form>
+	<div class="row">
+		<div class="form col-sm-5">
+			<form id="mapSettings" class="form-horizontal">
+	  			<div class="form-group">
+					<label for="mapHeight" class="col-sm-2 control-label">Map Height</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="10" max="10000" name="mapHeight" value="100">
+					</div>
+				</div>
+	  			<div class="form-group">
+					<label for="mapWidth" class="col-sm-2 control-label">Map Width</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="10" max="10000" name="mapWidth" value="100">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="heightMax" class="col-sm-2 control-label">Height Max</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="1" max="10" name="heightMax" value="10">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="heightMin" class="col-sm-2 control-label">Height Min</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="0" max="10" name="heightMin" value="0">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="summitNb" class="col-sm-2 control-label">Number of summits</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="0" max="20" name="summitNb" value="5">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="riverNb" class="col-sm-2 control-label">Number of rivers</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="0" max="20" name="riverNb" value="2">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="lakeNb" class="col-sm-2 control-label">Number of lakes</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="0" max="20" name="lakeNb" value="1">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="itemNb" class="col-sm-2 control-label">Number of items</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="0" max="100" name="itemNb" value="100">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="name" class="col-sm-2 control-label">Your character's name</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" min="1" max="20" name="name" value="Jack">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="opponentNb" class="col-sm-2 control-label">Number of opponents</label>
+					<div class="col-sm-10">
+						<input type="number" class="form-control" min="0" max="20" name="opponentNb" value="10">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="fogMode" class="col-sm-2 control-label">Fog of war</label>
+					<div class="col-sm-10">
+						<div class="checkbox">
+							<input type="checkbox" name="fogMode" checked="checked">
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="fogOpponentsMode" class="col-sm-2 control-label">Fog of war on opponents</label>
+					<div class="col-sm-10">
+						<div class="checkbox">
+							<input type="checkbox" name="fogOpponentsMode" checked="checked">
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="debugMode" class="col-sm-2 control-label">Debug Mode</label>
+					<div class="col-sm-10">
+						<div class="checkbox">
+							<input type="checkbox" name="debugMode" checked="checked">
+						</div>
+					</div>
+				</div>
+				<input type="submit" value="Generate">
+				<input id="lava" type="button" value="Release Lava">
+			</form>
+		</div>
 	</div>
 	<div id="legend" class="hide">
 	Legend :
@@ -83,7 +118,24 @@
 		<span class="case height10"></span>
 	</div>
 	<div id="discovery" class="hide"></div>
-	<div id="speedControl" class="hide"><input type="button" id="slower" value="<<"><input type="button" id="play" value=">" class="hide"><input type="button" id="pause" value="||"><input type="button" id="faster" value=">>"><span id="speed">1</span></div>
+	<div id="speedControl" class="hide">
+		<div class="btn-group"> 
+			<button id="slower" type="button" class="btn btn-default" aria-label="Left Align">
+				<span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
+			</button> 
+			<button id="play" type="button" class="btn btn-default hide" aria-label="Center Align">
+				<span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+			</button>
+			<button  id="pause" type="button" class="btn btn-default" aria-label="Right Align">
+				<span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+			</button>
+			<button id="faster" type="button" class="btn btn-default" aria-label="Justify">
+				<span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+			</button>
+		</div>
+		<span id="speed">1</span>
+	</div>
+
 	<div id="messages" style="height:450px; overflow-y: auto"></div>
 	<div id="board" style="float:right; height:450px; overflow-y: auto"><span id="alive"></span><ul id="tracker"></ul></div>
 
@@ -93,8 +145,16 @@
   		<source src="audio/canon.mp3" type="audio/mp3">
   		<source src="audio/canon.ogg" type="audio/ogg">
 	</audio>
+
 	<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+	<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="js/chance.min.js"></script>
 	<script type="text/javascript" src="js/main.js"></script>
+
+	<script type="text/javascript" src="js/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="js/highcharts/highcharts-more.js"></script>
+	<!-- <script type="text/javascript" src="js/highcharts/modules/exporting.js"></script> -->
+
+	<div id="container" style="min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto"></div>
 </body>
 </html>

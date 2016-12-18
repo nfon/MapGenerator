@@ -1,12 +1,6 @@
 .form{
 	background-color: lightgrey;
   	border: 1px solid black;
-  	width: 300px;
-  	text-align: left;
-}
-
-.form div{
-	padding: 5px;
 }
 
 .form input[type=number]{
