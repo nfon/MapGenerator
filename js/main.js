@@ -550,6 +550,8 @@ var Ui = function() {
 	    		inventory+=item.name
 	    		if (item.type=="ammo")
 	    			inventory+="("+item.specs.quantity+")";
+	    		if (item.quantity && item.quantity > 1)
+	    			inventory+="("+item.quantity+")";
     			inventory+=", ";
 	    	}
 	    	if (inventory.length)
@@ -720,6 +722,7 @@ var Items = function(itemNb) {
 
 var Item = function(item,coordinates,grabbed) {
 	this.id = item.id;
+	this.quantity = 1;
 	this.type = item.type;
 	this.specs = $.extend(true, [], item.specs);
 	this.name = item.name;
@@ -797,7 +800,13 @@ var Player = function() {
 		    		}
 		    		else {
 		    			self.updateWeight(item.weight);
-		    			self.inventory.push(item);
+		    			if (self.hasItem(item.id))
+		    			{
+		    				var tempItem = $.grep(self.inventory, function(e){ return e.id == item.id; })[0];
+		    				tempItem.quantity += item.quantity;
+		    			}
+		    			else
+		    				self.inventory.push(item);
 						if (item.type=="object") {
 				    		for (var i in item.specs) {
 				    			var spec = item.specs[i];
@@ -868,7 +877,10 @@ var Player = function() {
 		}
     	displayMessage(self.name+" ("+self.id+") used "+item.name,"#FFD700");
 		self.updateWeight(-item.weight);
-		self.inventory.pop(item);
+		if (item.quantity>1)
+			item.quantity-=1;
+		else
+			self.inventory.pop(item);
     }
 
     this.useAmmo = function(id) {
