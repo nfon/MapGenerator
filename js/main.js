@@ -806,8 +806,7 @@ var Player = function() {
 		    		}
 		    		else {
 		    			self.updateWeight(item.weight);
-		    			if (self.hasItem(item.id))
-		    			{
+		    			if (self.hasItem(item.id)) {
 		    				var tempItem = $.grep(self.inventory, function(e){ return e.id == item.id; })[0];
 		    				tempItem.quantity += item.quantity;
 		    			}
@@ -818,7 +817,7 @@ var Player = function() {
 				    			var spec = item.specs[i];
 				    			if (spec.type=="permanent") {
 				    				self[spec.property] = Math.max(self[spec.property],spec.value);
-				    				self.cleanItems(spec.property, spec.value);
+				    				self.cleanItems(spec.property, self[spec.property]);
 				    			}
 				    			if (spec.type=="cumul") {
 				    				self[spec.property] += spec.value;
@@ -838,12 +837,23 @@ var Player = function() {
     	if (player) {
     		if (player.inventory.length) {
 	    		displayMessage(self.name+" ("+self.id+") stealing "+player.name+" ("+player.id+")'s inventory","#FFD700");
-	    		for (i in player.inventory) {
-		    		self.getItem(player.inventory[i]);
-    				player.inventory.pop(player.inventory[i]);//empty the inventory so no one can steal what is left
+	    		for (var i in player.inventory) {
+	    			var item = player.inventory[i];
+		    		self.getItem(item);
+					var index = player.getIndexInventory(item.id);
+		    		if (index > -1)
+					    player.inventory.splice(index, 1);//empty the inventory so no one can steal what is left
 	    		}
 	    	}
 	    }
+    }
+
+    this.getIndexInventory = function(id) {
+    	for(var i in self.inventory) {
+    		if (self.inventory[i].id==id)
+    			return i;
+		}
+		return -1;
     }
 
     this.hasItem = function(id) {
@@ -865,7 +875,7 @@ var Player = function() {
     		var ammos = self.inventory.filter(function(item){
 	    		return item.type=="ammo";
     		});
-    		for (i in ammos) {
+    		for (var i in ammos) {
 	    		if (ammos[i].name==item.specs["ammo"])
     				return ammos[i];
 			}
@@ -886,8 +896,11 @@ var Player = function() {
 		self.updateWeight(-item.weight);
 		if (item.quantity>1)
 			item.quantity-=1;
-		else
-			self.inventory.pop(item);
+		else {
+			var index = self.getIndexInventory(item.id);
+    		if (index > -1)
+				self.inventory.splice(index, 1);
+		}
     }
 
     this.cleanItems = function(property, value) {
@@ -895,7 +908,7 @@ var Player = function() {
     	if (self.inventory.length)
     		result = $.grep(self.inventory, function(e){ return e.type == "object"; });
     	
-    	for (i in result) {
+    	for (var i in result) {
     		var item = result[i];
     		for (var s in item.specs) {
 				var spec = item.specs[s];
@@ -913,7 +926,11 @@ var Player = function() {
 		if (item.quantity>1)
 			item.quantity-=1;
 		else
-			self.inventory.pop(item);
+		{
+			var index = self.getIndexInventory(item.id);
+    		if (index > -1)
+				self.inventory.splice(index, 1);
+		}
     }
 
     this.useAmmo = function(id) {
@@ -923,8 +940,11 @@ var Player = function() {
     		item.specs.quantity-=1;
     		displayMessage(self.name+" ("+self.id+") used 1 ammo (/"+item.specs.quantity+") "+item.name,"red");
 
-	    	if (item.quantity<=0)
-				self.inventory.pop(item);
+	    	if (item.quantity<=0) {
+				var index = self.getIndexInventory(item.id);
+    			if (index > -1)
+					self.inventory.splice(index, 1);
+	    	}
     	}
     }
 
@@ -1068,7 +1088,7 @@ var Player = function() {
     	var x=0;
     	var y=0;
     	var len=arr.length;
-    	for (i in arr) {
+    	for (var i in arr) {
     		var cur = arr[i];
     		if (item) {
 				x+=cur[item].coordinates.x;
