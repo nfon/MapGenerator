@@ -1,5 +1,9 @@
 var map;
+var opponents;
 var genericItems;
+var items;
+var fogMode;
+var fogOpponentsMode;
 var gameOn=false;
 var gameSpeed = 1;
 var debugMode = false;
@@ -673,7 +677,9 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:6},0.6,"shotgun shell",6));
 		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:8},0.8,"riffle ammo",4));
 		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:2},0.8,"rocket",2));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"armour",9));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"light armour",100));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:200}],1.5,"armour",100));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:250}],2,"heavy armour",100));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin",7));
@@ -812,6 +818,7 @@ var Player = function() {
 				    			var spec = item.specs[i];
 				    			if (spec.type=="permanent") {
 				    				self[spec.property] = Math.max(self[spec.property],spec.value);
+				    				self.cleanItems(spec.property, spec.value);
 				    			}
 				    			if (spec.type=="cumul") {
 				    				self[spec.property] += spec.value;
@@ -883,6 +890,32 @@ var Player = function() {
 			self.inventory.pop(item);
     }
 
+    this.cleanItems = function(property, value) {
+    	var result = [];
+    	if (self.inventory.length)
+    		result = $.grep(self.inventory, function(e){ return e.type == "object"; });
+    	
+    	for (i in result) {
+    		var item = result[i];
+    		for (var s in item.specs) {
+				var spec = item.specs[s];
+				if (spec.type=="permanent")
+					if (spec.property == property && spec.value<value)
+						self.dropItem(item.id);
+			}
+    	}
+    }
+
+    this.dropItem = function(id) {
+    	var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
+    	displayMessage(self.name+" ("+self.id+") dropped "+item.name,"#FFD700");
+		self.updateWeight(-item.weight);
+		if (item.quantity>1)
+			item.quantity-=1;
+		else
+			self.inventory.pop(item);
+    }
+
     this.useAmmo = function(id) {
     	if (id!=-1) {
     		var item = $.grep(self.inventory, function(e){ return e.id == id; })[0];
@@ -909,7 +942,6 @@ var Player = function() {
     		self.checkHealth();
     		self.getItem(items.hasItem(self.coordinates));
     		self.getInventory(self.hasOpponent(0,self.coordinates));
-
     	}
     }
 
@@ -942,7 +974,7 @@ var Player = function() {
 		var range = map.map[x][y].altitude*self.vision;
 
 		var closedOpponents = [];
-		
+
 		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
 			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
 				var powX = Math.pow(i-x,2);
@@ -1309,7 +1341,7 @@ var Opponents = function(opponentNb) {
 		}
 	}
 
-	this.generate();
+	self.generate();
 }
 
 var Opponent = function (id,name,coordinates) {
@@ -1460,11 +1492,11 @@ $(document).ready(function() {
 	});
 
 	$("#mapSettings").on("submit",function(evt){
-		mapH = parseInt($("input[name=mapHeight]").val(),10);
-		mapL = parseInt($("input[name=mapWidth]").val(),10);
+		var mapH = parseInt($("input[name=mapHeight]").val(),10);
+		var mapL = parseInt($("input[name=mapWidth]").val(),10);
 
-		heightMin = parseInt($("input[name=heightMin]").val(),10);
-		heightMax = parseInt($("input[name=heightMax]").val(),10);
+		var heightMin = parseInt($("input[name=heightMin]").val(),10);
+		var heightMax = parseInt($("input[name=heightMax]").val(),10);
 
 		if (heightMin > heightMax) {
 			$("input[name=heightMin]").val(heightMax);
@@ -1473,13 +1505,13 @@ $(document).ready(function() {
 			heightMax = parseInt($("input[name=heightMax]").val(),10);
 		}
 
-		summitNb = parseInt($("input[name=summitNb]").val(),10);
-		lakeNb = parseInt($("input[name=lakeNb]").val(),10);
-		riverNb = parseInt($("input[name=riverNb]").val(),10);
+		var summitNb = parseInt($("input[name=summitNb]").val(),10);
+		var lakeNb = parseInt($("input[name=lakeNb]").val(),10);
+		var riverNb = parseInt($("input[name=riverNb]").val(),10);
 
-		opponentNb = parseInt($("input[name=opponentNb]").val(),10);
+		var opponentNb = parseInt($("input[name=opponentNb]").val(),10);
 
-		itemNb = parseInt($("input[name=itemNb]").val(),10);
+		var itemNb = parseInt($("input[name=itemNb]").val(),10);
 
 
 		fogMode = $("input[name=fogMode]").prop("checked");
@@ -1498,7 +1530,6 @@ $(document).ready(function() {
 		Opponent.prototype.constructor = Player;
 
 		opponents = new Opponents(opponentNb);
-
 
 		Hero.prototype = Object.create(Player.prototype); 
 		Hero.prototype.constructor = Player;
