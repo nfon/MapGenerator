@@ -521,6 +521,9 @@ var Ui = function() {
  	var self = this;
 
 	this.updateTracker = function(){
+		var hearth = ["0,45.486 38.514,45.486 44.595,33.324 50.676,45.486 57.771,45.486 62.838,55.622 71.959,9 80.067,63.729 84.122,45.486 97.297,45.486 103.379,40.419 110.473,45.486 150,45.486",
+				  	  "0,45.486 19.257,45.486 22.2975,33.324 25.338,45.486 28.8855,45.486 31.419,55.622 35.9795,9 40.0335,63.729 42.061,45.486 48.6485,45.486 51.6895,40.419 55.2365,45.486 75,45.486 94.257,45.486 97.2975,33.324 100.338,45.486 103.8855,45.486 106.419,55.622 110.9795,9 115.0335,63.729 117.061,45.486 123.6485,45.486 126.6895,40.419 130.2365,45.486 150,45.486",
+				  	  "0,45.8 150,45.8"];
 		var playerAlive = [];
 		for (var i=-1;i<opponents.opponentNb;i++) {
 			var $playerTracker;
@@ -531,14 +534,19 @@ var Ui = function() {
 				player=opponents.opponents[i];
 			
 	    	if (self.$tracker.find("#id_"+player.id).length == 0)
-	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>name:<span>"+player.name+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div></li>");
+	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>name:<span>"+player.name+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div><div class='heart-rate'><svg version='1.0' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='150px' height='73px' viewBox='0 0 150 73' enable-background='new 0 0 150 73' xml:space='preserve'><polyline fill='none' stroke='#009B9E' stroke-width='3' stroke-miterlimit='10' points='"+hearth[0]+"'/></svg><div class='fade-in'></div><div class='fade-out'></div></div></li>");
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	if (player.health==0) {
+	    		$playerTracker.find("polyline")[0].setAttribute("points",hearth[2]);
 	    		$playerTracker.addClass("dead");
 	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
 	    	}
 	    	else {
+	    		if (player.health<player.healthLimit)
+	    			$playerTracker.find("polyline")[0].setAttribute("points",hearth[1]);
+	    		else
+	    			$playerTracker.find("polyline")[0].setAttribute("points",hearth[0]);
 	    		playerAlive.push(player);
 	    		$playerTracker.find(".coord").text(player.coordinates.x+", "+player.coordinates.y);
 	    		$playerTracker.find(".attack").text(player.attack);
@@ -677,9 +685,9 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:6},0.6,"shotgun shell",6));
 		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:8},0.8,"riffle ammo",4));
 		self.genericItems.push(new GenericItem(i++,"ammo",{quantity:2},0.8,"rocket",2));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"light armour",100));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:200}],1.5,"armour",100));
-		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:250}],2,"heavy armour",100));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:150}],1,"light armour",20));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:200}],1.5,"armour",10));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:250}],2,"heavy armour",5));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin",7));
