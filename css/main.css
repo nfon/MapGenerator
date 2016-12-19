@@ -77,6 +77,10 @@ canvas{
 	list-style-type: none;
 }
 
+#tracker li {
+	display: inline-block;
+}
+
 .ui>div>div.percent {
 	background-color: lightgrey;
 	width: 100px;
