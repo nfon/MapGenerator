@@ -1,15 +1,11 @@
 var game;
 
-var fogMode;
-var fogOpponentsMode;
-var debugMode = false;
-
 function clearMessage() {
 	$("#messages").html("");
 }
 
 function displayMessage(msg,color,background) {
-	if (debugMode) {
+	if (game.debugMode) {
 		if (color == undefined)
 			color="#000000";
 		if (background == undefined)
@@ -1308,7 +1304,7 @@ var Hero = function(name,coordinates) {
 
 		if (reset)
 			game.map.create();
-		if (fogMode)
+		if (game.map.fogMode)
 			game.map.lightSurroundingPlayer(-1);
 		game.map.countDiscovery();
 	}
@@ -1353,7 +1349,7 @@ var Opponents = function(opponentNb) {
 							}
 							else {
 								self.opponents[i].move();
-								if (fogOpponentsMode)
+								if (game.map.fogOpponentsMode)
 									game.map.lightSurroundingPlayer(i);
 							}
 						}
@@ -1494,6 +1490,7 @@ var Game = function() {
 	this.map;
 	this.gameSpeed = 1;
 	this.gameOn;
+	this.debugMode = false;
 	this.sounds;
 	this.ui;
 	var self = this;
@@ -1550,9 +1547,9 @@ var Game = function() {
 			var itemNb = parseInt($("input[name=itemNb]").val(),10);
 
 
-			fogMode = $("input[name=fogMode]").prop("checked");
-			fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
-			debugMode = $("input[name=debugMode]").prop("checked");
+			var fogMode = $("input[name=fogMode]").prop("checked");
+			var fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
+			self.debugMode = $("input[name=debugMode]").prop("checked");
 
 			self.gameOn = true;
 
