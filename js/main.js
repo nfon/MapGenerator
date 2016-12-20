@@ -998,7 +998,6 @@ var Player = function() {
 		var range = game.map.map[x][y].altitude*self.vision;
 
 		var closedOpponents = [];
-		debugger;
 
 		for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
 			for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
