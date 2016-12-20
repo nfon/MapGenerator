@@ -1,11 +1,7 @@
-var map;
-var opponents;
-var genericItems;
-var items;
+var game;
+
 var fogMode;
 var fogOpponentsMode;
-var gameOn=false;
-var gameSpeed = 1;
 var debugMode = false;
 
 function clearMessage() {
@@ -337,9 +333,9 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.lightSurroundingPlayer = function(o) {
 		if (o>=0)
-			var player = opponents.opponents[o];
+			var player = game.opponents.opponents[o];
 		else
-			var player = hero;
+			var player = game.hero;
 
 		var x = player.coordinates.x;
 		var y = player.coordinates.y;
@@ -366,7 +362,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var discovery =  0;
 		for (var i=0;i<self.mapH;i++) {
 			for (var j=0;j<self.mapL;j++) {
-				discovery+=hero.map[i][j].opacity;
+				discovery+=game.hero.map[i][j].opacity;
 			}
 		}
 	    $("#discovery").text( round( (discovery/self.map.length),2)+"% discovered");
@@ -395,12 +391,12 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    var x = Math.floor(i/4/self.mapL);
 		    var opacity = self.map[x][y].opacity;
 		    
-	    	if (self.fogMode && hero.follow)
-	    		opacity = Math.max(opacity,hero.map[x][y].opacity);
+	    	if (self.fogMode && game.hero.follow)
+	    		opacity = Math.max(opacity,game.hero.map[x][y].opacity);
 	    	if (self.fogOpponentsMode) {
-	    		for (var o=0; o<opponents.opponentNb; o++) {
-	    			if (opponents.opponents[o].follow)
-	    				opacity = Math.max(opacity,opponents.opponents[o].map[x][y].opacity);
+	    		for (var o=0; o<game.opponents.opponentNb; o++) {
+	    			if (game.opponents.opponents[o].follow)
+	    				opacity = Math.max(opacity,game.opponents.opponents[o].map[x][y].opacity);
 	    		}
     		}
     		self.map[x][y].tempOpacity = opacity;
@@ -427,8 +423,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    }
 		}
 
-		for (var t in items.items) {
-	    	var item = items.items[t];
+		for (var t in game.items.items) {
+	    	var item = game.items.items[t];
 	    	var x = item.coordinates.x;
 	    	var y = item.coordinates.y;
     		var i = x*self.mapL*4 + y*4;
@@ -447,8 +443,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			}
 	    }
 
-	    for (var o in opponents.opponents) {
-	    	var opponent = opponents.opponents[o];
+	    for (var o in game.opponents.opponents) {
+	    	var opponent = game.opponents.opponents[o];
 	    	var x = opponent.coordinates.x;
 	    	var y = opponent.coordinates.y;
     		var i = x*self.mapL*4 + y*4;
@@ -467,8 +463,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			}
 	    }
 
-	    var x = hero.coordinates.x;
-    	var y = hero.coordinates.y;
+	    var x = game.hero.coordinates.x;
+    	var y = game.hero.coordinates.y;
 		var i = x*self.mapL*4 + y*4;
 
 		if (self.map[x][y].type!=2) {
@@ -492,7 +488,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 
 	this.tick = function() {
-		if (gameOn) {
+		if (game.gameOn) {
 			if (self.lavaStep) {
 				var delay = 5000;
 				if (self.lavaStep>=self.mapH/4)
@@ -500,7 +496,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 				if (self.lavaStep>=self.mapH/3)
 					delay = 10000000000;
 
-				if ((Date.now()-self.lavaDelay>delay*gameSpeed) ) {
+				if ((Date.now()-self.lavaDelay>delay*game.gameSpeed) ) {
 					self.releaseLava();
 					self.lavaDelay = Date.now();
 				}
@@ -525,13 +521,13 @@ var Ui = function() {
 				  	  "0,45.486 19.257,45.486 22.2975,33.324 25.338,45.486 28.8855,45.486 31.419,55.622 35.9795,9 40.0335,63.729 42.061,45.486 48.6485,45.486 51.6895,40.419 55.2365,45.486 75,45.486 94.257,45.486 97.2975,33.324 100.338,45.486 103.8855,45.486 106.419,55.622 110.9795,9 115.0335,63.729 117.061,45.486 123.6485,45.486 126.6895,40.419 130.2365,45.486 150,45.486",
 				  	  "0,45.8 150,45.8"];
 		var playerAlive = [];
-		for (var i=-1;i<opponents.opponentNb;i++) {
+		for (var i=-1;i<game.opponents.opponentNb;i++) {
 			var $playerTracker;
 			var player;
 			if (i==-1)
-				player=hero;
+				player=game.hero;
 			else
-				player=opponents.opponents[i];
+				player=game.opponents.opponents[i];
 			
 	    	if (self.$tracker.find("#id_"+player.id).length == 0)
 	    		self.$tracker.append("<li id='id_"+player.id+"' data-id='"+player.id+"' class='ui'><div>id:<span>"+player.id+"</span><br/>name:<span>"+player.name+"</span><br/>coord:<span class='coord'></span><br/>attack:<span class='attack'></span><br/>range:<span class='range'></span><br/>food:<div class='percent'><span class='food'></span></div>water:<div class='percent'><span class='water'></span></div>weight:<div class='percent'><span class='weight'></span></div>health:<div class='percent'><span class='health'></span></div>inventory:<span class='inventory'></span><br/>follow:<span><input class='follow' type='checkbox' "+(player.follow?'checked':'')+"></span></div><div class='heart-rate'><svg version='1.0' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='150px' height='73px' viewBox='0 0 150 73' enable-background='new 0 0 150 73' xml:space='preserve'><polyline fill='none' stroke='#009B9E' stroke-width='3' stroke-miterlimit='10' points='"+hearth[0]+"'/></svg><div class='fade-in'></div><div class='fade-out'></div></div></li>");
@@ -576,7 +572,7 @@ var Ui = function() {
 		if (playerAlive.length==1) {
 			self.$board.find("#alive").text("WINNER : "+playerAlive[0].name+ "("+playerAlive[0].id+")");
 			displayMessage(playerAlive[0].name+" wins!","#000000","FFD700");
-			gameOn=false;
+			game.gameOn=false;
 		}
 		else
 			self.$board.find("#alive").text(playerAlive.length+" players alive");
@@ -584,19 +580,19 @@ var Ui = function() {
 
     this.getInfoCase = function(x,y) {
 		self.$tracker.find(".active").removeClass('active');
-    	for (var i=-1;i<opponents.opponentNb;i++) {
+    	for (var i=-1;i<game.opponents.opponentNb;i++) {
 			var $playerTracker;
 			var player;
 			if (i==-1)
-				player=hero;
+				player=game.hero;
 			else
-				player=opponents.opponents[i];
+				player=game.opponents.opponents[i];
 			if (player.coordinates.x==x && player.coordinates.y==y)
 	    		self.$tracker.find("#id_"+player.id).addClass('active');
 	    }
-	    for (var o in items.items) {
-	    	if (items.items[o].coordinates.x == x && items.items[o].coordinates.y == y)
-	    		displayMessage(items.items[o]);
+	    for (var o in game.items.items) {
+	    	if (game.items.items[o].coordinates.x == x && game.items.items[o].coordinates.y == y)
+	    		displayMessage(game.items.items[o]);
 	    }
     }
 
@@ -609,12 +605,12 @@ var Ui = function() {
 		self.$tracker.on("change", "input.follow[type=checkbox]", function() {
 			var id = $(this).parents("li[data-id]").attr("data-id");
 			if (id==99)
-				hero.follow = $(this).prop("checked");
+				game.hero.follow = $(this).prop("checked");
 			else
-				opponents.opponents[id].follow = $(this).prop("checked");
+				game.opponents.opponents[id].follow = $(this).prop("checked");
 		});
 
-		map.$canvas[0].addEventListener('click', function(event) {
+		game.map.$canvas[0].addEventListener('click', function(event) {
 			var elemLeft = this.offsetLeft;
     		var elemTop  = this.offsetTop;
 		    var x = parseInt((event.pageX - elemLeft)/5,10);
@@ -624,9 +620,9 @@ var Ui = function() {
 	}
 
 	this.tick = function() {
-		if (gameOn) {
+		if (game.gameOn) {
 			var delay = 1000;
-			if (Date.now()-self.last>delay*gameSpeed) {
+			if (Date.now()-self.last>delay*game.gameSpeed) {
 				self.last = Date.now();
 				self.updateTracker();
 			}
@@ -712,21 +708,21 @@ var Items = function(itemNb) {
 	var self = this;
 
 	this.generate = function() {
-		var weights = genericItems.genericItems.map((item) => (item.frequency));
+		var weights = game.genericItems.genericItems.map((item) => (item.frequency));
 		
 		for (var i=0; i<self.itemNb; i++) {
-			var x = getRandom(0,map.mapH-1);
-			var y = getRandom(0,map.mapL-1);
-			var item = chance.weighted(genericItems.genericItems, weights);
+			var x = getRandom(0,game.map.mapH-1);
+			var y = getRandom(0,game.map.mapL-1);
+			var item = chance.weighted(game.genericItems.genericItems, weights);
 			self.items.push(new Item($.extend(true, [],item),{x:x,y:y},false));
 		}
 	}
 
 	this.hasItem = function(coordinates) {
-		for (var i in items.items) {
-			if (items.items[i].coordinates.x == coordinates.x && items.items[i].coordinates.y == coordinates.y && !items.items[i].grabbed) {
-				items.items[i].grabbed = true;
-				return items.items[i];
+		for (var i in self.items) {
+			if (self.items[i].coordinates.x == coordinates.x && self.items[i].coordinates.y == coordinates.y && !self.items[i].grabbed) {
+				self.items[i].grabbed = true;
+				return self.items[i];
 			}
 		}
 		return false;
@@ -788,7 +784,7 @@ var Player = function() {
     	self.healthMax = health;
     	this.gathering = gathering;
     	self.follow = follow;
-    	self.map = $.extend(true, [], map.map);
+    	self.map = $.extend(true, [], game.map.map);
     }
 
     this.setPosition = function(x,y) {
@@ -962,13 +958,13 @@ var Player = function() {
 
     this.updatePlayer = function(coef) {
     	if (self.health) {
-    		self.food=Math.max(0,round(self.food-round(coef*map.map[self.coordinates.x][self.coordinates.y].altitude,2),2));
-    		if (map.map[self.coordinates.x][self.coordinates.y].type == 1)
+    		self.food=Math.max(0,round(self.food-round(coef*game.map.map[self.coordinates.x][self.coordinates.y].altitude,2),2));
+    		if (game.map.map[self.coordinates.x][self.coordinates.y].type == 1)
 	    		self.water=Math.max(0,round(self.water-coef,2));
-    		if (map.map[self.coordinates.x][self.coordinates.y].type==2)
+    		if (game.map.map[self.coordinates.x][self.coordinates.y].type==2)
     			self.health = Math.max(0,self.health-50);
     		self.checkHealth();
-    		self.getItem(items.hasItem(self.coordinates));
+    		self.getItem(game.items.hasItem(self.coordinates));
     		self.getInventory(self.hasOpponent(0,self.coordinates));
     	}
     }
@@ -978,12 +974,12 @@ var Player = function() {
     	//0: death
     	//1: alive
     	//2: either
-		for (var o=-1;o<opponents.opponentNb;o++) {
+		for (var o=-1;o<game.opponents.opponentNb;o++) {
 			var player;
 			if (o==-1)
-				player=hero;
+				player=game.hero;
 			else
-				player=opponents.opponents[o];
+				player=game.opponents.opponents[o];
 
 			if (player.id!=self.id && player.coordinates.x == coordinates.x && player.coordinates.y == coordinates.y)
 				if (status==0 && player.health==0 || status==1 && player.health>0 || status==2)
@@ -999,21 +995,22 @@ var Player = function() {
     	//2: either
     	var x = self.coordinates.x;
 		var y = self.coordinates.y;
-		var range = map.map[x][y].altitude*self.vision;
+		var range = game.map.map[x][y].altitude*self.vision;
 
 		var closedOpponents = [];
+		debugger;
 
-		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
-			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
+		for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
+			for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 				var powX = Math.pow(i-x,2);
 				var powY = Math.pow(j-y,2);
 				if ( powX + powY < Math.pow(range,2) ) {
-					for (var o=-1;o<opponents.opponentNb;o++) {
+					for (var o=-1;o<game.opponents.opponentNb;o++) {
 						var player;
 						if (o==-1)
-							player=hero;
+							player=game.hero;
 						else
-							player=opponents.opponents[o];
+							player=game.opponents.opponents[o];
 
 						if (player.id != self.id) {
 							if (status==0 && player.health==0 || status==1 && player.health || status==2) {
@@ -1037,16 +1034,16 @@ var Player = function() {
     this.getClosedItems = function() {
     	var x = self.coordinates.x;
 		var y = self.coordinates.y;
-		var range = map.map[x][y].altitude*self.vision;
+		var range = game.map.map[x][y].altitude*self.vision;
 
 		var closedItems = [];
 
-		var itemsAvailable = items.items.filter(function(item){
+		var itemsAvailable = game.items.items.filter(function(item){
 			return item.grabbed==false;
 		});
 		
-		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
-			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
+		for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
+			for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 				var powX = Math.pow(i-x,2);
 				var powY = Math.pow(j-y,2);
 				if ( powX + powY < Math.pow(range,2) ) {
@@ -1070,16 +1067,16 @@ var Player = function() {
     this.getClosedLava = function() {
     	var x = self.coordinates.x;
 		var y = self.coordinates.y;
-		var range = map.map[x][y].altitude*self.vision;
+		var range = game.map.map[x][y].altitude*self.vision;
 
 		var closedLava = [];
 		
-		for (var i=Math.max(0,(x-range));i<=Math.min(map.mapL-1,(x+range));i++) {
-			for (var j=Math.max(0,(y-range));j<=Math.min(map.mapH-1,(y+range));j++) {
+		for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
+			for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 				var powX = Math.pow(i-x,2);
 				var powY = Math.pow(j-y,2);
 				if ( powX + powY < Math.pow(range,2) )
-					if (map.map[i][j].type==2)
+					if (game.map.map[i][j].type==2)
 						closedLava.push({coordinates:{x:i,y:j},distance:getDistance({x:i,y:j},self.coordinates)});
 			}
 		}
@@ -1187,7 +1184,7 @@ var Player = function() {
 			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
 			self.useAmmo(bestWeaponAmmo.id);
 			if (closedOpponents[0].player.health==0) {
-    			sounds.sounds["canon"].play();
+    			game.sounds.sounds["canon"].play();
 				displayMessage(self.name+" ("+self.id+") killed "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+")","#B22222","#000000");
 			}
 
@@ -1195,9 +1192,9 @@ var Player = function() {
     }
 
     this.eat = function() {
-    	var foodAvailable = map.map[self.coordinates.x][self.coordinates.y].food;
+    	var foodAvailable = game.map.map[self.coordinates.x][self.coordinates.y].food;
     	var foodTaken = round(foodAvailable*self.gathering,2);
-    	map.map[self.coordinates.x][self.coordinates.y].food=Math.max(0,foodAvailable-foodTaken);
+    	game.map.map[self.coordinates.x][self.coordinates.y].food=Math.max(0,foodAvailable-foodTaken);
     	self.food=Math.min(self.foodMax,self.food+foodTaken);
     }
 
@@ -1221,7 +1218,7 @@ var Player = function() {
     		self.health = Math.max(0,round(self.health-0.1,2));
     	if (self.health==0)
     	{
-    		sounds.sounds["canon"].play();
+    		game.sounds.sounds["canon"].play();
 			displayMessage(self.name+" ("+self.id+") died","#B22222","#000000");
     	}
     }
@@ -1240,7 +1237,7 @@ var Hero = function(name,coordinates) {
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
-			if (map) {
+			if (game.map) {
 				$(document).on("keydown",function(evt) {
 					if (evt.keyCode>36 && evt.keyCode<41)
 					{
@@ -1261,14 +1258,14 @@ var Hero = function(name,coordinates) {
 	}
 
 	this.tick = function() {
-		if (gameOn) {
-			if (Date.now()-self.last>self.delay*gameSpeed && self.health) {
+		if (game.gameOn) {
+			if (Date.now()-self.last>self.delay*game.gameSpeed && self.health) {
 				self.last = Date.now();
-				if (self.keydown != -1 && map && map.initialized && self.health)
+				if (self.keydown != -1 && game.map && game.map.initialized && self.health)
 					self.move(self.keydown-37);
 				else
 				{
-					if (map.map[self.coordinates.x][self.coordinates.y].type==0)
+					if (game.map.map[self.coordinates.x][self.coordinates.y].type==0)
 						self.drink();
 					else
 						self.eat();
@@ -1292,18 +1289,18 @@ var Hero = function(name,coordinates) {
 
 		var reset = false;
 		if (self.coordinates.y<0) {
-			self.coordinates.y=map.mapH-1;
+			self.coordinates.y=game.map.mapH-1;
 			reset = true;
 		}
-		if (self.coordinates.y>map.mapH-1) {
+		if (self.coordinates.y>game.map.mapH-1) {
 			self.coordinates.y=0;
 			reset = true;
 		}
 		if (self.coordinates.x<0) {
-			self.coordinates.x=map.mapL-1;
+			self.coordinates.x=game.map.mapL-1;
 			reset = true;
 		}
-		if (self.coordinates.x>map.mapL-1) {
+		if (self.coordinates.x>game.map.mapL-1) {
 			self.coordinates.x=0;
 			reset = true;
 		}
@@ -1311,10 +1308,10 @@ var Hero = function(name,coordinates) {
 		self.updatePlayer(0.2);
 
 		if (reset)
-			map.create();
+			game.map.create();
 		if (fogMode)
-			map.lightSurroundingPlayer(-1);
-		map.countDiscovery();
+			game.map.lightSurroundingPlayer(-1);
+		game.map.countDiscovery();
 	}
 
 	this.bind();
@@ -1331,8 +1328,8 @@ var Opponents = function(opponentNb) {
 	this.generate = function() {
 		var names = chance.unique(chance.first, self.opponentNb);
 		for (var i=0; i<self.opponentNb; i++) {
-			var x = getRandom(0,map.mapH-1);
-			var y = getRandom(0,map.mapL-1);
+			var x = getRandom(0,game.map.mapH-1);
+			var y = getRandom(0,game.map.mapL-1);
 			self.opponents[i] = new Opponent(i,names[i],{x:x,y:y});
 		}
 		if (self.ticker)
@@ -1341,24 +1338,24 @@ var Opponents = function(opponentNb) {
 	}
 
 	this.tick = function() {
-		if (gameOn) {
-			if (Date.now()-self.lastOpponentMove>self.delayOpponent*gameSpeed) {
+		if (game.gameOn) {
+			if (Date.now()-self.lastOpponentMove>self.delayOpponent*game.gameSpeed) {
 				self.lastOpponentMove = Date.now();
 				for (var i=0; i<self.opponentNb; i++) {
 					if (self.opponents[i].health) {
-						if (self.opponents[i].food < self.opponents[i].foodLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0) {
+						if (self.opponents[i].food < self.opponents[i].foodLimit && game.map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0) {
 							self.opponents[i].eat();
 							self.opponents[i].updatePlayer(0.1);
 						}
 						else {
-							if (self.opponents[i].water < self.opponents[i].waterLimit && map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0) {
+							if (self.opponents[i].water < self.opponents[i].waterLimit && game.map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].type == 0) {
 								self.opponents[i].drink();
 								self.opponents[i].updatePlayer(0.1);
 							}
 							else {
 								self.opponents[i].move();
 								if (fogOpponentsMode)
-									map.lightSurroundingPlayer(i);
+									game.map.lightSurroundingPlayer(i);
 							}
 						}
 						self.opponents[i].checkSurroundings();
@@ -1416,8 +1413,8 @@ var Opponent = function (id,name,coordinates) {
 			case 7 : x=x+1; y=y+1; break;
 		}
 
-		x = Math.min(map.mapH-1,Math.max(0,x));
-		y = Math.min(map.mapH-1,Math.max(0,y));
+		x = Math.min(game.map.mapH-1,Math.max(0,x));
+		y = Math.min(game.map.mapH-1,Math.max(0,y));
 		self.coordinates.x = x;
 		self.coordinates.y = y;
 		self.updatePlayer(0.2);
@@ -1490,95 +1487,114 @@ function drawStats() {
     });
 }
 
+var Game = function() {
+	this.genericItems;
+	this.items;
+	this.opponents = [];
+	this.hero;
+	this.map;
+	this.gameSpeed = 1;
+	this.gameOn;
+	this.sounds;
+	this.ui;
+	var self = this;
+
+	this.bind = function() {
+		$("#lava").on("click",function(){
+			self.map.releaseLava();
+		});
+
+		$("#slower").on("click",function(){
+			self.gameSpeed+=0.1;
+			$("#speed").text("x"+round( (2-self.gameSpeed),2));
+		});
+
+		$("#pause").on("click",function(){
+			self.gameSpeed=99999999999999999;
+			$(this).addClass("hide");
+			$("#play").removeClass("hide");
+			$("#speed").text(0);
+		});
+
+		$("#play").on("click",function(){
+			self.gameSpeed=1;
+			$(this).addClass("hide");
+			$("#pause").removeClass("hide");
+			$("#speed").text(self.gameSpeed);
+		});
+
+		$("#faster").on("click",function(){
+			self.gameSpeed-=0.1;
+			$("#speed").text("x"+round( (2-self.gameSpeed),2));
+		});
+
+		$("#mapSettings").on("submit",function(evt){
+			var mapH = parseInt($("input[name=mapHeight]").val(),10);
+			var mapL = parseInt($("input[name=mapWidth]").val(),10);
+
+			var heightMin = parseInt($("input[name=heightMin]").val(),10);
+			var heightMax = parseInt($("input[name=heightMax]").val(),10);
+
+			if (heightMin > heightMax) {
+				$("input[name=heightMin]").val(heightMax);
+				$("input[name=heightMax]").val(heightMin);
+				heightMin = parseInt($("input[name=heightMin]").val(),10);
+				heightMax = parseInt($("input[name=heightMax]").val(),10);
+			}
+
+			var summitNb = parseInt($("input[name=summitNb]").val(),10);
+			var lakeNb = parseInt($("input[name=lakeNb]").val(),10);
+			var riverNb = parseInt($("input[name=riverNb]").val(),10);
+
+			var opponentNb = parseInt($("input[name=opponentNb]").val(),10);
+
+			var itemNb = parseInt($("input[name=itemNb]").val(),10);
+
+
+			fogMode = $("input[name=fogMode]").prop("checked");
+			fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
+			debugMode = $("input[name=debugMode]").prop("checked");
+
+			self.gameOn = true;
+
+			self.map = new Map(mapL,mapH,heightMin,heightMax,summitNb,lakeNb,riverNb,fogMode,fogOpponentsMode);
+			self.map.create();
+
+			self.genericItems = new GenericItems();
+			self.items = new Items(itemNb);
+
+			Opponent.prototype = Object.create(Player.prototype); 
+			Opponent.prototype.constructor = Player;
+
+			self.opponents = new Opponents(opponentNb);
+
+			Hero.prototype = Object.create(Player.prototype); 
+			Hero.prototype.constructor = Player;
+
+			var name = $("input[name=name]").val();
+			self.hero = new Hero(name,{x:0,y:0});
+			self.hero.move();
+
+			if (self.map.ticker)
+				cancelAnimationFrame(self.map.tick);
+			self.map.tick();
+
+			self.sounds = new Sounds();
+			self.ui = new Ui();
+
+			self.map.$map.removeClass("hide");
+			$("#legend").removeClass("hide");
+			$("#discovery").removeClass("hide");
+			$("#speedControl").removeClass("hide");
+			return false;
+		});
+	}
+
+	self.bind();
+}
+
+
 $(document).ready(function() {
-	$("#lava").on("click",function(){
-		map.releaseLava();
-	});
-
-	$("#slower").on("click",function(){
-		gameSpeed+=0.1;
-		$("#speed").text("x"+round( (2-gameSpeed),2));
-	});
-
-	$("#pause").on("click",function(){
-		gameSpeed=99999999999999999;
-		$(this).addClass("hide");
-		$("#play").removeClass("hide");
-		$("#speed").text(0);
-	});
-
-	$("#play").on("click",function(){
-		gameSpeed=1;
-		$(this).addClass("hide");
-		$("#pause").removeClass("hide");
-		$("#speed").text(gameSpeed);
-	});
-
-	$("#faster").on("click",function(){
-		gameSpeed-=0.1;
-		$("#speed").text("x"+round( (2-gameSpeed),2));
-	});
-
-	$("#mapSettings").on("submit",function(evt){
-		var mapH = parseInt($("input[name=mapHeight]").val(),10);
-		var mapL = parseInt($("input[name=mapWidth]").val(),10);
-
-		var heightMin = parseInt($("input[name=heightMin]").val(),10);
-		var heightMax = parseInt($("input[name=heightMax]").val(),10);
-
-		if (heightMin > heightMax) {
-			$("input[name=heightMin]").val(heightMax);
-			$("input[name=heightMax]").val(heightMin);
-			heightMin = parseInt($("input[name=heightMin]").val(),10);
-			heightMax = parseInt($("input[name=heightMax]").val(),10);
-		}
-
-		var summitNb = parseInt($("input[name=summitNb]").val(),10);
-		var lakeNb = parseInt($("input[name=lakeNb]").val(),10);
-		var riverNb = parseInt($("input[name=riverNb]").val(),10);
-
-		var opponentNb = parseInt($("input[name=opponentNb]").val(),10);
-
-		var itemNb = parseInt($("input[name=itemNb]").val(),10);
-
-
-		fogMode = $("input[name=fogMode]").prop("checked");
-		fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
-		debugMode = $("input[name=debugMode]").prop("checked");
-
-		gameOn = true;
-
-		map = new Map(mapL,mapH,heightMin,heightMax,summitNb,lakeNb,riverNb,fogMode,fogOpponentsMode);
-		map.create();
-
-		genericItems = new GenericItems();
-		items = new Items(itemNb);
-
-		Opponent.prototype = Object.create(Player.prototype); 
-		Opponent.prototype.constructor = Player;
-
-		opponents = new Opponents(opponentNb);
-
-		Hero.prototype = Object.create(Player.prototype); 
-		Hero.prototype.constructor = Player;
-
-		var name = $("input[name=name]").val();
-		hero = new Hero(name,{x:0,y:0});
-		hero.move();
-
-		if (map.ticker)
-			cancelAnimationFrame(map.tick);
-		map.tick();
-
-		sounds = new Sounds();
-		var ui = new Ui();
-
-		map.$map.removeClass("hide");
-		$("#legend").removeClass("hide");
-		$("#discovery").removeClass("hide");
-		$("#speedControl").removeClass("hide");
-		return false;
-	});
-
+	game = new Game();
 	drawStats();
 });
