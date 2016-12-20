@@ -1327,6 +1327,9 @@ var Opponents = function(opponentNb) {
 			var y = getRandom(0,game.map.mapL-1);
 			self.opponents[i] = new Opponent(i,names[i],{x:x,y:y});
 		}
+	}
+
+	this.startTicking = function() {
 		if (self.ticker)
 			cancelAnimationFrame(self.tick);
 		self.tick();
@@ -1570,6 +1573,8 @@ var Game = function() {
 			var name = $("input[name=name]").val();
 			self.hero = new Hero(name,{x:0,y:0});
 			self.hero.move();
+
+			self.opponents.startTicking();
 
 			if (self.map.ticker)
 				cancelAnimationFrame(self.map.tick);
