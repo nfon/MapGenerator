@@ -530,6 +530,7 @@ var Ui = function() {
 	    	
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	if (player.health==0) {
+	    		player.follow=false;//hide the path of the dead ones
 	    		$playerTracker.find("polyline")[0].setAttribute("points",hearth[2]);
 	    		$playerTracker.addClass("dead");
 	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
@@ -1090,16 +1091,25 @@ var Player = function() {
 		var range = 1;
 
 		var closedWater = [];
-		while ((x>range && x+range<game.map.mapH-1 && y>range && y+range<game.map.mapL-1) && closedWater.length==0) {
+		var minDistance = Math.min(minDistance,distance);
+
+		while ((x>range || x+range<game.map.mapH-1 || y>range || y+range<game.map.mapL-1) && closedWater.length==0) {
 			for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
 				for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 					if (game.map.map[i][j].type==0 && self.map[i][j].opacity==1) {
-						closedWater.push({coordinates:{x:i,y:j},distance:getDistance({x:i,y:j},self.coordinates)});
+						var distance = getDistance({x:i,y:j},self.coordinates);
+						minDistance = Math.min(minDistance,distance);
+						closedWater.push({coordinates:{x:i,y:j},distance:distance});
 					}
 				}
 			}
 			range++;
 		}
+
+		closedWater = closedWater.filter(function(zone) {
+		    return zone.distance == minDistance;
+		});
+
 		return closedWater;
     }
 
@@ -1107,18 +1117,25 @@ var Player = function() {
     	var x = self.coordinates.x;
 		var y = self.coordinates.y;
 		var range = 1;
-
+		var minDistance = 9999999;
 		var closedUnknownZone = [];
-		while ((x>range && x+range<game.map.mapH-1 && y>range && y+range<game.map.mapL-1) && closedUnknownZone.length==0) {
+		while ((x>range || x+range<game.map.mapH-1 || y>range || y+range<game.map.mapL-1) && closedUnknownZone.length==0) {
 			for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
 				for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 					if (self.map[i][j].opacity<1) {
-						closedUnknownZone.push({coordinates:{x:i,y:j},distance:getDistance({x:i,y:j},self.coordinates)});
+						var distance = getDistance({x:i,y:j},self.coordinates);
+						minDistance = Math.min(minDistance,distance);
+						closedUnknownZone.push({coordinates:{x:i,y:j},distance:distance});
 					}
 				}
 			}
 			range++;
 		}
+
+		closedUnknownZone = closedUnknownZone.filter(function(zone) {
+		    return zone.distance == minDistance;
+		});
+
 		return closedUnknownZone;
     }
 
@@ -1412,56 +1429,62 @@ var Opponent = function (id,name,coordinates) {
 	self.init(id,name,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
 
     this.move = function() {
-    	var directionRandom = true;
+    	var randomDirection = true;
     	var direction = getRandom(0,8);
     	if (game.map.lavaStep> 0 ) {
     		var closedLava = self.getClosedLava();
     		if (closedLava.length) {
-				direction = self.getReverseDirection(self.getDirection(self.getAverageCoord(closedLava)));
-    			directionRandom = false;
+				direction = self.getReverseDirection(self.getDirection(self.getAverageCoord(closedLava)));//peut être pas average (médiane ?)
+    			randomDirection = false;
+				//console.log("lava go to "+direction);
     		}
     	}
-    	if (directionRandom) {
+    	if (randomDirection) {
 	    	var closedOpponents = self.getClosedOpponents(2);
 	    	if (closedOpponents.length) {
 	    		if (closedOpponents[0].player.health) {
 					direction = self.getDirection(self.getAverageCoord(closedOpponents,"player"));
+    				randomDirection = false;
+					//console.log("opponents go to "+direction);
 	    			if (self.health<=self.healthLimit) {
 	    				direction = self.getReverseDirection(direction);
-	    				directionRandom = false;
+    					//console.log("opponents run away go to "+direction);
 	    			}
 	    		}
 	    		else {
 	    			if (closedOpponents[0].player.inventory.length) {
 						direction = self.getDirection(closedOpponents[0].player.coordinates);
-	    				directionRandom = false;
+	    				randomDirection = false;
+    					//console.log("corpse go to "+direction);
 	    			}
 	    		}
 	    	}
 	    }
-	    if (directionRandom) {
+	    if (randomDirection) {
     		if (self.water < self.waterLimit) {
     			var closedWater = self.getClosedWater();
     			if (closedWater.length) {
-					direction = self.getDirection(closedWater[0].coordinates);
-    				directionRandom = false;
-    				console.log("water go to "+direction);
+					direction = self.getDirection(closedWater[getRandom(0,closedWater.length-1)].coordinates);
+    				randomDirection = false;
+    				//console.log("water go to "+direction);
     			}
     		}
     	}
-		if (directionRandom) {
+		if (randomDirection) {
 			var closedItems = self.getClosedItems();//warning : if the player is fully loaded he will probably stay static
 			if (closedItems.length) {
 				direction = self.getDirection(closedItems[0].item.coordinates);
-				directionRandom = false;
+				randomDirection = false;
+    			//console.log("item go to "+direction);
 			}
 	    }
 
-	    if (directionRandom) {
+	    if (randomDirection) {
 	    	var closedUnknownZone = self.getClosedUnknownZone();
 			if (closedUnknownZone.length) {
-				direction = self.getDirection(closedUnknownZone[0].coordinates);
-				directionRandom = false;
+				direction = self.getDirection(closedUnknownZone[getRandom(0,closedUnknownZone.length-1)].coordinates);
+				randomDirection = false;
+    			//console.log("unknown go to "+direction);
 			}
 	    }
 
