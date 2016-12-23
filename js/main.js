@@ -33,6 +33,29 @@ function getDistance(coordinates1,coordinates2) {
 	return Math.sqrt( Math.pow((coordinates2.x-coordinates1.x),2) + Math.pow((coordinates2.y-coordinates1.y),2) );
 }
 
+function modal(closabled, title, body, btn1, btn2, fct1, fct2) {
+	var $modal = $("#modal");
+	if (closabled)
+		$modal.find(".closable").show();
+	else
+		$modal.find(".closable").hide();
+	$modal.find("#modalLabel").html(title);
+	$modal.find("#modalBody").html(body);
+	$modal.modal();
+	$modal.data('bs.modal').options.backdrop = closabled?true:'static'; //out of the init else the backdrop won't be changed after the first init
+	$modal.data('bs.modal').options.keyboard = !closabled; //out of the init else the backdrop won't be changed after the first init
+
+	$modal.find(".modal-footer>button").off();
+	if (closabled) 
+		$modal.find(".modal-footer>button.btn-primary").text(btn1).on("click",fct1);
+	$modal.find(".modal-footer>button.btn-primary").text(btn2).on("click",fct2);
+}
+
+function closeModal() {
+	var $modal = $("#modal");
+	$modal.modal("toggle");
+}
+
 var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode){
 	this.$map = $("#map");
 	this.$canvas = this.$map.find("canvas");
@@ -387,7 +410,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    var x = Math.floor(i/4/self.mapL);
 		    var opacity = self.map[x][y].opacity;
 		    
-	    	if (self.fogMode && game.hero.follow)
+	    	if (self.fogMode && game.hero && game.hero.follow)
 	    		opacity = Math.max(opacity,game.hero.map[x][y].opacity);
 	    	if (self.fogOpponentsMode) {
 	    		for (var o=0; o<game.opponents.opponentNb; o++) {
@@ -459,18 +482,20 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			}
 	    }
 
-	    var x = game.hero.coordinates.x;
-    	var y = game.hero.coordinates.y;
-		var i = x*self.mapL*4 + y*4;
+	    if (game.hero) {
+	    	var x = game.hero.coordinates.x;
+    		var y = game.hero.coordinates.y;
+			var i = x*self.mapL*4 + y*4;
 
-		if (self.map[x][y].type!=2) {
-	
-			imgData.data[i] = 255;
-	    	imgData.data[i+1] = 0;
-	    	imgData.data[i+2] = 0;
-	    	imgData.data[i+3] = 255;
-    		opacity=255;
-    	}
+			if (self.map[x][y].type!=2) {
+		
+				imgData.data[i] = 255;
+		    	imgData.data[i+1] = 0;
+		    	imgData.data[i+2] = 0;
+		    	imgData.data[i+3] = 255;
+	    		opacity=255;
+	    	}
+	    }
 		ctx1.putImageData(imgData, 0, 0);
 
 		c2.width = self.mapL*5;
@@ -517,7 +542,7 @@ var Ui = function() {
 				  	  "0,45.486 19.257,45.486 22.2975,33.324 25.338,45.486 28.8855,45.486 31.419,55.622 35.9795,9 40.0335,63.729 42.061,45.486 48.6485,45.486 51.6895,40.419 55.2365,45.486 75,45.486 94.257,45.486 97.2975,33.324 100.338,45.486 103.8855,45.486 106.419,55.622 110.9795,9 115.0335,63.729 117.061,45.486 123.6485,45.486 126.6895,40.419 130.2365,45.486 150,45.486",
 				  	  "0,45.8 150,45.8"];
 		var playerAlive = [];
-		for (var i=-1;i<game.opponents.opponentNb;i++) {
+		for (var i=game.hero?-1:0;i<game.opponents.opponentNb;i++) {
 			var $playerTracker;
 			var player;
 			if (i==-1)
@@ -578,7 +603,7 @@ var Ui = function() {
 
     this.getInfoCase = function(x,y) {
 		self.$tracker.find(".active").removeClass('active');
-    	for (var i=-1;i<game.opponents.opponentNb;i++) {
+    	for (var i=game.hero?-1:0;i<game.opponents.opponentNb;i++) {
 			var $playerTracker;
 			var player;
 			if (i==-1)
@@ -987,7 +1012,7 @@ var Player = function() {
     	//0: death
     	//1: alive
     	//2: either
-		for (var o=-1;o<game.opponents.opponentNb;o++) {
+		for (var o=game.hero?-1:0;o<game.opponents.opponentNb;o++) {
 			var player;
 			if (o==-1)
 				player=game.hero;
@@ -1017,13 +1042,12 @@ var Player = function() {
 				var powX = Math.pow(i-x,2);
 				var powY = Math.pow(j-y,2);
 				if ( powX + powY < Math.pow(range,2) ) {
-					for (var o=-1;o<game.opponents.opponentNb;o++) {
+					for (var o=game.hero?-1:0;o<game.opponents.opponentNb;o++) {
 						var player;
 						if (o==-1)
 							player=game.hero;
 						else
 							player=game.opponents.opponents[o];
-
 						if (player.id != self.id) {
 							if (status==0 && player.health==0 || status==1 && player.health || status==2) {
 								if (player.coordinates.x == i && player.coordinates.y == j)
@@ -1219,8 +1243,8 @@ var Player = function() {
 
 		if (closedOpponents.length) {			
 			var attack = self.attack;
-	    	var range = self.range;
-	    	var damage = round(self.attack*self.accuracy*self.range/Math.max(1,closedOpponents[0].distance),2);
+	    	var range = self.range/100;
+	    	var damage = round(self.attack*self.accuracy*self.range/100/Math.max(1,closedOpponents[0].distance),2);
 	    	var bestWeapon = {name:"fist"};
 	    	var bestWeaponAmmo = {id:-1, specs:{quantity:1}};
 
@@ -1259,7 +1283,7 @@ var Player = function() {
 
     this.eat = function() {
     	var foodAvailable = game.map.map[self.coordinates.x][self.coordinates.y].food;
-    	var foodTaken = round(foodAvailable*self.gathering,2);
+    	var foodTaken = round(foodAvailable*self.gathering/100,2);
     	game.map.map[self.coordinates.x][self.coordinates.y].food=Math.max(0,foodAvailable-foodTaken);
     	self.food=Math.min(self.foodMax,self.food+foodTaken);
     }
@@ -1299,7 +1323,7 @@ var Hero = function(name,coordinates) {
 	this.ticker;
 
 	var self = this;
-	self.init(99,name,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
+	self.init(99,name,coordinates,2,10,0.3,100,100,20,100,20,20,100,25,100,true);
 
 	this.bind = function() {
 		$(document).on("keyup",function(evt) {
@@ -1442,7 +1466,7 @@ var Opponent = function (id,name,coordinates) {
 	Player.call(this);
 
 	var self = this;
-	self.init(id,name,coordinates,2,10,0.3,1,100,20,100,20,20,100,25,1,true);
+	self.init(id,name,coordinates,1,10,0.3,100,100,20,100,20,20,100,25,100,true);
 
     this.move = function() {
     	var randomDirection = true;
@@ -1526,6 +1550,8 @@ var Opponent = function (id,name,coordinates) {
 }
 
 function drawStats() {
+	var opp1 = game.opponents.opponents[0];
+	var opp2 = game.opponents.opponents[1];
 	Highcharts.chart('container', {
 
         chart: {
@@ -1553,9 +1579,8 @@ function drawStats() {
         pane: {
             size: '80%'
         },
-
         xAxis: {
-            categories: ['Health', 'Attack', 'Vision', 'Accuracy', 'Water', 'Food'],
+            categories: ['Vision', 'Attack', 'Range', 'Food', 'Water', 'Weight', 'Health', 'Gathering'],
             tickmarkPlacement: 'on',
             lineWidth: 0
         },
@@ -1568,7 +1593,7 @@ function drawStats() {
 
         tooltip: {
             shared: true,
-            pointFormat: '<span style="color:{series.color}">{series.name}: <b>${point.y:,.0f}</b><br/>'
+            pointFormat: '<span style="color:{series.color}">{series.name}: <b>{point.y:,.0f}</b><br/>'
         },
 
         legend: {
@@ -1579,23 +1604,26 @@ function drawStats() {
         },
 
         series: [{
-            name: 'Jack',
-            data: [120, 110, 100, 90, 100, 100],
+            name: opp1.name,
+            data: [opp1.vision*100, opp1.attack, opp1.range, opp1.foodMax, opp1.waterMax, opp1.weightMax, opp1.health, opp1.gathering],
             pointPlacement: 'on'
         }, {
-            name: 'Lea',
-            data: [130, 100, 90, 100, 100, 100],
+            name: opp2.name,
+            data: [opp2.vision*100, opp2.attack, opp2.range, opp2.foodMax, opp2.waterMax, opp2.weightMax, opp2.health, opp2.gathering],
             pointPlacement: 'on'
         }]
 
     });
 }
 
+
+
 var Game = function() {
 	this.genericItems;
 	this.items;
 	this.opponents = [];
 	this.hero;
+	this.name;
 	this.map;
 	this.gameSpeed = 1;
 	this.gameOn;
@@ -1603,6 +1631,54 @@ var Game = function() {
 	this.sounds;
 	this.ui;
 	var self = this;
+
+	this.welcome = function() {
+		modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
+	}
+
+	this.saveName = function() {
+		self.name = $("#modal").find("input[name]").val();
+
+		modal(false,"Look! Your champions are coming!","<p>They are <b>"+game.opponents.opponents[0].name+"</b> and <b>"+game.opponents.opponents[1].name+"</b>! Actually, they don't look that bad! They may survive the first minute...</p><p>"+self.name+" check their stats if you train them well they will be even better and who know they may be able to win!</p><div id='container' style='min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto'></div>","","Let's train them then!",null,game.train);
+		drawStats();
+	}
+
+	this.train = function() {
+		modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"?</p>","","Let's start with "+game.opponents.opponents[0].name+"!",null,game.trainSkill0);
+	}
+
+	this.trainSkill0 = function() {
+		closeModal();
+		game.start();
+		//modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"?</p>","","Let's start with "+game.opponents.opponents[0].name+"!",null,game.trainSkill0);
+	}
+
+	this.start = function() {
+		self.gameSpeed = 1;	
+		/*	
+			Hero.prototype = Object.create(Player.prototype); 
+			Hero.prototype.constructor = Player;
+
+			var name = $("input[name=name]").val();
+			self.hero = new Hero(name,{x:0,y:0});
+			self.hero.move();
+		*/
+		self.opponents.startTicking();
+
+		if (self.map.ticker)
+			cancelAnimationFrame(self.map.tick);
+		self.map.tick();
+
+		self.sounds = new Sounds();
+		self.ui = new Ui();
+
+		self.map.$map.removeClass("hide");
+		$("#board").removeClass("hide");
+		$("#messages").removeClass("hide");
+		$("#legend").removeClass("hide");
+		$("#discovery").removeClass("hide");
+		$("#speedControl").removeClass("hide");
+	}
 
 	this.bind = function() {
 		$("#lava").on("click",function(){
@@ -1673,26 +1749,9 @@ var Game = function() {
 
 			self.opponents = new Opponents(opponentNb);
 
-			Hero.prototype = Object.create(Player.prototype); 
-			Hero.prototype.constructor = Player;
+			self.gameSpeed = 99999999;
+			self.welcome();
 
-			var name = $("input[name=name]").val();
-			self.hero = new Hero(name,{x:0,y:0});
-			self.hero.move();
-
-			self.opponents.startTicking();
-
-			if (self.map.ticker)
-				cancelAnimationFrame(self.map.tick);
-			self.map.tick();
-
-			self.sounds = new Sounds();
-			self.ui = new Ui();
-
-			self.map.$map.removeClass("hide");
-			$("#legend").removeClass("hide");
-			$("#discovery").removeClass("hide");
-			$("#speedControl").removeClass("hide");
 			return false;
 		});
 	}
@@ -1703,5 +1762,4 @@ var Game = function() {
 
 $(document).ready(function() {
 	game = new Game();
-	drawStats();
 });
