@@ -531,6 +531,7 @@ var Ui = function() {
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	if (player.health==0) {
 	    		player.follow=false;//hide the path of the dead ones
+	    		$playerTracker.find("input").prop('disabled',true);
 	    		$playerTracker.find("polyline")[0].setAttribute("points",hearth[2]);
 	    		$playerTracker.addClass("dead");
 	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
@@ -564,7 +565,7 @@ var Ui = function() {
 	    	else
 	    		inventory = "/";
 	    	$playerTracker.find(".inventory").text(inventory);
-	    	$playerTracker.find("input").prop(player.follow?'checked':'');
+	    	$playerTracker.find("input").prop('checked',player.follow);
 		}
 		if (playerAlive.length==1) {
 			self.$board.find("#alive").text("WINNER : "+playerAlive[0].name+ "("+playerAlive[0].id+")");
@@ -869,6 +870,21 @@ var Player = function() {
     	if (self.inventory.length)
     		result = $.grep(self.inventory, function(e){ return e.name == name; });
     	return result.length;
+    }
+
+    this.hasWeapon = function() {
+    	var weapons = self.inventory.filter(function(item){
+    		return item.type=="weapon";
+    	});
+    	for (var w in weapons) {
+    		var weapon = weapons[w];
+    		if (weapon.ammo)
+    			return true;
+    		else 
+    			if (self.getAmmo(weapon).specs.quantity>0)
+    				return true;
+    	}
+    	return false;
     }
 
     this.getAmmo = function(item) {
@@ -1446,9 +1462,9 @@ var Opponent = function (id,name,coordinates) {
 					direction = self.getDirection(self.getAverageCoord(closedOpponents,"player"));
     				randomDirection = false;
 					//console.log("opponents go to "+direction);
-	    			if (self.health<=self.healthLimit) {
+	    			if (self.health<=self.healthLimit || (!self.hasWeapon() && getRandom(0,3)<=2) ) {//run away if no health (100%) or no weapon (66%)
 	    				direction = self.getReverseDirection(direction);
-    					//console.log("opponents run away go to "+direction);
+    					//console.log("opponents run away go to "+direction+" "+self.health+" "+self.healthLimit);
 	    			}
 	    		}
 	    		else {
