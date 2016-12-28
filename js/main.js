@@ -96,9 +96,9 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	}
 
 	this.generate = function() {
-		for (var i=0;i<self.mapH;i++) {
+		for (var i=0;i<self.mapL;i++) {
 			self.map[i] = new Array();
-			for (var j=0;j<self.mapL;j++) {
+			for (var j=0;j<self.mapH;j++) {
 				var altitude = getRandomNormal(self.heightMin,Math.floor((self.heightMin+self.heightMax)/2));
 				self.map[i][j]={type:1, 
 								altitude:altitude,
@@ -111,8 +111,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.generateSummits = function() {
 		for (var i=0;i<self.summitNb;i++) {
-			var x = getRandom(0,self.mapH-1);
-			var y = getRandom(0,self.mapL-1);
+			var x = getRandom(0,self.mapL-1);
+			var y = getRandom(0,self.mapH-1);
 			self.map[x][y].altitude=self.heightMax;
 			self.changeSurroundings(x,y,self.heightMax);
 		}
@@ -126,8 +126,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.generateRelief = function(val) {
 		displayMessage("Generate level "+val,"#7FFF00");
-		for (var i=0;i<self.mapH;i++) {
-			for (var j=0;j<self.mapL;j++) {
+		for (var i=0;i<self.mapL;i++) {
+			for (var j=0;j<self.mapH;j++) {
 				if (self.map[i][j].altitude==val) {
 					self.changeSurroundings(i,j,val-1);
 				}
@@ -135,15 +135,15 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		}
 	}
 
-	this.changeSurroundings = function(y,x,val) {
+	this.changeSurroundings = function(x,y,val) {
 		var mountainSizeXMin=getRandomNormal(0,5);
 		var mountainSizeXMax=getRandomNormal(0,5);
 		var mountainSizeYMin=getRandomNormal(0,5);
 		var mountainSizeYMax=getRandomNormal(0,5);
 
-		for (var j=Math.max(0,(x-mountainSizeXMin));j<=Math.min(self.mapL-1,(x+mountainSizeXMax));j++) {
-			for (var i=Math.max(0,(y-mountainSizeYMin));i<=Math.min(self.mapH-1,(y+mountainSizeYMax));i++) {
-				if (x!=j || y!=i) {
+		for (var i=Math.max(0,(x-mountainSizeXMin));i<=Math.min(self.mapL-1,(x+mountainSizeXMax));i++) {
+			for (var j=Math.max(0,(y-mountainSizeYMin));j<=Math.min(self.mapH-1,(y+mountainSizeYMax));j++) {
+				if (x!=i || y!=j) {
 					if (self.map[i][j].altitude<val) {
 						self.map[i][j].altitude=getRandomNormal(val+1,val-1);
 					}
@@ -154,8 +154,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.generateLakesSource = function() {
 		for (var i=0;i<self.lakeNb;i++) {
-			var x = getRandom(0,self.mapH-1);
-			var y = getRandom(0,self.mapL-1);
+			var x = getRandom(0,self.mapL-1);
+			var y = getRandom(0,self.mapH-1);
 			if (self.map[x][y].altitude>=self.heightMax-1 && self.heightMax!=self.heightMin+1)
 				i--;
 			else
@@ -171,8 +171,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.generateLake = function(val) {
 		displayMessage("Generate River level "+val,"#7FFF00");
-		for (var i=0;i<self.mapH;i++) {
-			for (var j=0;j<self.mapL;j++) {
+		for (var i=0;i<self.mapL;i++) {
+			for (var j=0;j<self.mapH;j++) {
 				if (self.map[i][j].type==0 && self.map[i][j].altitude==val) {
 					self.changeSurroundingsLake(i,j,val);
 				}
@@ -180,14 +180,14 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		}
 	}
 
-	this.changeSurroundingsLake = function(y,x,val) {
+	this.changeSurroundingsLake = function(x,y,val) {
 		var riverSizeXMin=getRandomNormal(0,4);
 		var riverSizeXMax=getRandomNormal(0,3);
 		var riverSizeYMin=getRandomNormal(0,4);
 		var riverSizeYMax=getRandomNormal(0,3);
-		for (var j=Math.max(0,(x-riverSizeXMin));j<=Math.min(self.mapL-1,(x+riverSizeXMax));j++) {
-			for (var i=Math.max(0,(y-riverSizeYMin));i<=Math.min(self.mapH-1,(y+riverSizeYMax));i++) {
-				if (x!=j || y!=i) {
+		for (var i=Math.max(0,(x-riverSizeXMin));i<=Math.min(self.mapL-1,(x+riverSizeXMax));i++) {
+			for (var j=Math.max(0,(y-riverSizeYMin));j<=Math.min(self.mapH-1,(y+riverSizeYMax));j++) {
+				if (x!=i || y!=j) {
 					if (self.map[i][j].altitude<=val)
 						self.map[i][j].type=0;
 				}
@@ -205,11 +205,11 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 					orientation=0;
 				}
 				else {
-					var x = self.mapH-1;
+					var x = self.mapL-1;
 					orientation=2;
 				}
 
-				var y = getRandom(0,self.mapL-1);
+				var y = getRandom(0,self.mapH-1);
 			}
 			else {
 				if (getRandom(0,1)) {
@@ -217,10 +217,11 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 					orientation=3;
 				}
 				else {
-					var y = self.mapL-1;	
+					var y = self.mapH-1;	
 					orientation=1;			
 				}
-				var x = getRandom(0,self.mapH-1);
+
+				var x = getRandom(0,self.mapL-1);
 			}
 
 			self.map[x][y].type=0;
@@ -267,11 +268,11 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			}
 
 
-			i = Math.min(self.mapH-1,Math.max(0,i));
+			i = Math.min(self.mapL-1,Math.max(0,i));
 			j = Math.min(self.mapH-1,Math.max(0,j));
 			
 
-			if ( ( /*self.map[i][j]<0 ||*/ i==0 || i==mapH-1 || j==0 || j==self.mapL-1 ) && length > 5 )
+			if ( ( /*self.map[i][j]<0 ||*/ i==0 || i==mapL-1 || j==0 || j==self.mapH-1 ) && length > 5 )
 				inside=false;
 			
 			if ( self.map[i][j].type != 0 ) {
@@ -318,7 +319,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 
 /*
-		for (var i=self.lavaStep;i<self.mapH-self.lavaStep;i++) {
+		for (var i=self.lavaStep;i<self.mapL-self.lavaStep;i++) {
 			self.map[i][self.lavaStep].type = 2;
 			self.map[i][self.mapL-1-self.lavaStep].type = 2;
 
@@ -332,7 +333,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			if (getRandom(0,10)==seuilLvl2 && self.lavaStep+3<self.mapH)
 				self.map[i][self.mapH-3-self.lavaStep].type = 2;
 		}
-		for (var j=self.lavaStep;j<self.mapL-self.lavaStep;j++) {
+		for (var j=self.lavaStep;j<self.mapH-self.lavaStep;j++) {
 			self.map[self.lavaStep][j].type = 2;
 			self.map[self.mapL-1-self.lavaStep][j].type = 2;
 
@@ -379,8 +380,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 	this.countDiscovery = function(){
 		var discovery =  0;
-		for (var i=0;i<self.mapH;i++) {
-			for (var j=0;j<self.mapL;j++) {
+		for (var i=0;i<self.mapL;i++) {
+			for (var j=0;j<self.mapH;j++) {
 				discovery+=game.hero.map[i][j].opacity;
 			}
 		}
@@ -407,7 +408,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var imgData = ctx1.createImageData(self.mapL, self.mapH);
 		for (var i=0; i<imgData.data.length; i+=4) {
 		    var y = (i/4)%self.mapL;
-		    var x = Math.floor(i/4/self.mapL);
+		    var x = Math.floor(i/4/self.mapH);
 		    var opacity = self.map[x][y].opacity;
 		    
 	    	if (self.fogMode && game.hero && game.hero.follow)
@@ -576,7 +577,7 @@ var Ui = function() {
 	    		$playerTracker.find(".health").text(player.health+"/"+player.healthMax).css("width",player.health*100/player.healthMax);
 	    	}
 	    	var inventory = "";
-	    	for (o in player.inventory) {
+	    	for (var o in player.inventory) {
 	    		var item = player.inventory[o];
 	    		inventory+=item.name
 	    		if (item.type=="ammo")
@@ -734,8 +735,8 @@ var Items = function(itemNb) {
 		var weights = game.genericItems.genericItems.map((item) => (item.frequency));
 		
 		for (var i=0; i<self.itemNb; i++) {
-			var x = getRandom(0,game.map.mapH-1);
-			var y = getRandom(0,game.map.mapL-1);
+			var x = getRandom(0,game.map.mapL-1);
+			var y = getRandom(0,game.map.mapH-1);
 			var item = chance.weighted(game.genericItems.genericItems, weights);
 			self.items.push(new Item($.extend(true, [],item),{x:x,y:y},false));
 		}
@@ -1133,7 +1134,7 @@ var Player = function() {
 		var closedWater = [];
 		var minDistance = Math.min(minDistance,distance);
 
-		while ((x>range || x+range<game.map.mapH-1 || y>range || y+range<game.map.mapL-1) && closedWater.length==0) {
+		while ((x>range || x+range<game.map.mapL-1 || y>range || y+range<game.map.mapH-1) && closedWater.length==0) {
 			for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
 				for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 					if (game.map.map[i][j].type==0 && self.map[i][j].opacity==1) {
@@ -1159,7 +1160,7 @@ var Player = function() {
 		var range = 1;
 		var minDistance = 9999999;
 		var closedUnknownZone = [];
-		while ((x>range || x+range<game.map.mapH-1 || y>range || y+range<game.map.mapL-1) && closedUnknownZone.length==0) {
+		while ((x>range || x+range<game.map.mapL-1 || y>range || y+range<game.map.mapH-1) && closedUnknownZone.length==0) {
 			for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
 				for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
 					if (self.map[i][j].opacity<1) {
@@ -1418,8 +1419,8 @@ var Opponents = function(opponentNb) {
 	this.generate = function() {
 		var names = chance.unique(chance.first, self.opponentNb);
 		for (var i=0; i<self.opponentNb; i++) {
-			var x = getRandom(0,game.map.mapH-1);
-			var y = getRandom(0,game.map.mapL-1);
+			var x = getRandom(0,game.map.mapL-1);
+			var y = getRandom(0,game.map.mapH-1);
 			self.opponents[i] = new Opponent(i,names[i],{x:x,y:y});
 		}
 	}
