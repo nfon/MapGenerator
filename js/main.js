@@ -406,15 +406,16 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var ctx1 = c1.getContext("2d");
 
 		var imgData = ctx1.createImageData(self.mapL, self.mapH);
+
 		for (var i=0; i<imgData.data.length; i+=4) {
-		    var y = (i/4)%self.mapL;
-		    var x = Math.floor(i/4/self.mapH);
+		    var x = (i/4)%self.mapL;
+		    var y = Math.floor(i/4/self.mapL);
 		    var opacity = self.map[x][y].opacity;
 		    
 	    	if (self.fogMode && game.hero && game.hero.follow)
 	    		opacity = Math.max(opacity,game.hero.map[x][y].opacity);
 	    	if (self.fogOpponentsMode) {
-	    		for (var o=0; o<game.opponents.opponentNb; o++) {
+	    		for (var o=0; o<game.opponents.playerNb; o++) {
 	    			if (game.opponents.opponents[o].follow)
 	    				opacity = Math.max(opacity,game.opponents.opponents[o].map[x][y].opacity);
 	    		}
@@ -447,7 +448,8 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    	var item = game.items.items[t];
 	    	var x = item.coordinates.x;
 	    	var y = item.coordinates.y;
-    		var i = x*self.mapL*4 + y*4;
+    		var i = y*self.mapL*4 + x*4;
+
     		if (self.map[x][y].type!=2) {
 	    		if (item.grabbed) {
 					imgData.data[i] = 255;
@@ -467,7 +469,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    	var opponent = game.opponents.opponents[o];
 	    	var x = opponent.coordinates.x;
 	    	var y = opponent.coordinates.y;
-    		var i = x*self.mapL*4 + y*4;
+    		var i = y*self.mapL*4 + x*4;
     		if (self.map[x][y].type!=2) {
 	    		if (opponent.health) {
 					imgData.data[i] = 244;
@@ -486,7 +488,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    if (game.hero) {
 	    	var x = game.hero.coordinates.x;
     		var y = game.hero.coordinates.y;
-			var i = x*self.mapL*4 + y*4;
+    		var i = y*self.mapL*4 + x*4;
 
 			if (self.map[x][y].type!=2) {
 		
@@ -543,7 +545,7 @@ var Ui = function() {
 				  	  "0,45.486 19.257,45.486 22.2975,33.324 25.338,45.486 28.8855,45.486 31.419,55.622 35.9795,9 40.0335,63.729 42.061,45.486 48.6485,45.486 51.6895,40.419 55.2365,45.486 75,45.486 94.257,45.486 97.2975,33.324 100.338,45.486 103.8855,45.486 106.419,55.622 110.9795,9 115.0335,63.729 117.061,45.486 123.6485,45.486 126.6895,40.419 130.2365,45.486 150,45.486",
 				  	  "0,45.8 150,45.8"];
 		var playerAlive = [];
-		for (var i=game.hero?-1:0;i<game.opponents.opponentNb;i++) {
+		for (var i=game.hero?-1:0;i<game.opponents.playerNb;i++) {
 			var $playerTracker;
 			var player;
 			if (i==-1)
@@ -604,7 +606,7 @@ var Ui = function() {
 
     this.getInfoCase = function(x,y) {
 		self.$tracker.find(".active").removeClass('active');
-    	for (var i=game.hero?-1:0;i<game.opponents.opponentNb;i++) {
+    	for (var i=game.hero?-1:0;i<game.opponents.playerNb;i++) {
 			var $playerTracker;
 			var player;
 			if (i==-1)
@@ -1013,7 +1015,7 @@ var Player = function() {
     	//0: death
     	//1: alive
     	//2: either
-		for (var o=game.hero?-1:0;o<game.opponents.opponentNb;o++) {
+		for (var o=game.hero?-1:0;o<game.opponents.playerNb;o++) {
 			var player;
 			if (o==-1)
 				player=game.hero;
@@ -1043,7 +1045,7 @@ var Player = function() {
 				var powX = Math.pow(i-x,2);
 				var powY = Math.pow(j-y,2);
 				if ( powX + powY < Math.pow(range,2) ) {
-					for (var o=game.hero?-1:0;o<game.opponents.opponentNb;o++) {
+					for (var o=game.hero?-1:0;o<game.opponents.playerNb;o++) {
 						var player;
 						if (o==-1)
 							player=game.hero;
@@ -1408,8 +1410,8 @@ var Hero = function(name,coordinates) {
 	this.bind();
 }
 
-var Opponents = function(opponentNb) {
-	this.opponentNb = opponentNb;
+var Opponents = function(playerNb) {
+	this.playerNb = playerNb;
 	this.delayOpponent = 500;
 	this.lastOpponentMove = Date.now();
 	this.opponents = [];
@@ -1417,8 +1419,8 @@ var Opponents = function(opponentNb) {
 	var self = this;
 
 	this.generate = function() {
-		var names = chance.unique(chance.first, self.opponentNb);
-		for (var i=0; i<self.opponentNb; i++) {
+		var names = chance.unique(chance.first, self.playerNb);
+		for (var i=0; i<self.playerNb; i++) {
 			var x = getRandom(0,game.map.mapL-1);
 			var y = getRandom(0,game.map.mapH-1);
 			self.opponents[i] = new Opponent(i,names[i],{x:x,y:y});
@@ -1435,7 +1437,7 @@ var Opponents = function(opponentNb) {
 		if (game.gameOn) {
 			if (Date.now()-self.lastOpponentMove>self.delayOpponent*game.gameSpeed) {
 				self.lastOpponentMove = Date.now();
-				for (var i=0; i<self.opponentNb; i++) {
+				for (var i=0; i<self.playerNb; i++) {
 					if (self.opponents[i].health) {
 						if (self.opponents[i].food < self.opponents[i].foodLimit && game.map.map[self.opponents[i].coordinates.x][self.opponents[i].coordinates.y].food > 0) {
 							self.opponents[i].eat();
@@ -1634,7 +1636,9 @@ var Game = function() {
 	var self = this;
 
 	this.welcome = function() {
-		modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
+		game.start();
+
+		//modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
 	}
 
 	this.saveName = function() {
@@ -1728,7 +1732,7 @@ var Game = function() {
 			var lakeNb = parseInt($("input[name=lakeNb]").val(),10);
 			var riverNb = parseInt($("input[name=riverNb]").val(),10);
 
-			var opponentNb = parseInt($("input[name=opponentNb]").val(),10);
+			var playerNb = parseInt($("input[name=playerNb]").val(),10);
 
 			var itemNb = parseInt($("input[name=itemNb]").val(),10);
 
@@ -1748,7 +1752,7 @@ var Game = function() {
 			Opponent.prototype = Object.create(Player.prototype); 
 			Opponent.prototype.constructor = Player;
 
-			self.opponents = new Opponents(opponentNb);
+			self.opponents = new Opponents(playerNb);
 
 			self.gameSpeed = 99999999;
 			self.welcome();
