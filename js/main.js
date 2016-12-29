@@ -56,6 +56,16 @@ function closeModal() {
 	$modal.modal("toggle");
 }
 
+function getForm(name,value,min,max,step) {
+	return "<div class='form-group'>"+
+		"<label for='"+name+"' class='col-sm-2 control-label'>"+name.charAt(0).toUpperCase()+name.slice(1)+"</label>"+
+		"<div class='col-sm-8 input-group'>"+
+		"<span class='input-group-btn'><button class='btn btn-white btn-minuse' type='button'>-</button></span>"+
+		"<input type='number' class='form-control no-padding text-center' min='"+min+"' max='"+max+"' step='"+step+"' name='"+name+"' origin='"+value+"' value='"+value+"'>"+
+		"<span class='input-group-btn'><button class='btn btn-red btn-pluss' type='button'>+</button></span>"+
+		"</div></div>";
+}
+
 var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb, fogMode, fogOpponentsMode){
 	this.$map = $("#map");
 	this.$canvas = this.$map.find("canvas");
@@ -1636,9 +1646,9 @@ var Game = function() {
 	var self = this;
 
 	this.welcome = function() {
-		game.start();
+		//game.start();
 
-		//modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
+		modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
 	}
 
 	this.saveName = function() {
@@ -1648,8 +1658,44 @@ var Game = function() {
 		drawStats();
 	}
 
+//data: [opp1.vision*100, opp1.attack, opp1.range, opp1.foodMax, opp1.waterMax, opp1.weightMax, opp1.health, opp1.gathering],
 	this.train = function() {
-		modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"?</p>","","Let's start with "+game.opponents.opponents[0].name+"!",null,game.trainSkill0);
+		var opp = game.opponents.opponents[0];
+		var availablePoints = 100;
+		var skills = "<div class='row'><form class='form-horizontal'>"+
+					 getForm("health",opp.health,10,200,5)+
+					 getForm("attack",opp.attack,10,200,5)+
+					 getForm("vision",opp.vision*100,10,200,5)+
+					 getForm("range",opp.range,10,200,5)+
+					 getForm("foodMax",opp.foodMax,10,200,5)+
+					 getForm("waterMax",opp.waterMax,10,200,5)+
+					 getForm("weightMax",opp.weightMax,10,200,5)+
+					 getForm("gathering",opp.gathering,10,200,5)+
+					 "</form>"+
+					 "<p>Available points:<span id='availablePoints'>100</span></p>"+
+					 "</div>";
+		modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"?</p>"+skills,"","Let's start with "+game.opponents.opponents[0].name+"!",null,game.trainSkill0);
+		
+		$('.btn-minuse').off().on('click', function(){
+			availablePoints
+			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
+			var origin = parseInt($(this).parent().siblings('input').attr("origin"),10);
+			var val = parseInt($(this).parent().siblings('input').val(),10);
+			if (val-step>=origin) {
+				$(this).parent().siblings('input').val(val - step );
+				availablePoints+=step;
+				$("#availablePoints").text(availablePoints);
+			}
+		});
+
+		$('.btn-pluss').off().on('click', function(){
+			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
+			if (availablePoints-step>=0) {
+				$(this).parent().siblings('input').val(parseInt($(this).parent().siblings('input').val(),10) + step );
+				availablePoints-=step;
+				$("#availablePoints").text(availablePoints);
+			}
+		});		    
 	}
 
 	this.trainSkill0 = function() {
