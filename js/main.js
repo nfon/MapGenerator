@@ -1144,7 +1144,7 @@ var Player = function() {
 		var range = 1;
 
 		var closedWater = [];
-		var minDistance = Math.min(minDistance,distance);
+		var minDistance = 9999999;
 
 		while ((x>range || x+range<game.map.mapL-1 || y>range || y+range<game.map.mapH-1) && closedWater.length==0) {
 			for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
@@ -1164,6 +1164,34 @@ var Player = function() {
 		});
 
 		return closedWater;
+    }
+
+    this.getClosedFood = function() {
+    	var x = self.coordinates.x;
+		var y = self.coordinates.y;
+		var range = 1;
+
+		var closedFood = [];
+		var minDistance = 99999999;
+
+		while ((x>range || x+range<game.map.mapL-1 || y>range || y+range<game.map.mapH-1) && closedFood.length==0) {
+			for (var i=Math.max(0,(x-range));i<=Math.min(game.map.mapL-1,(x+range));i++) {
+				for (var j=Math.max(0,(y-range));j<=Math.min(game.map.mapH-1,(y+range));j++) {
+					if (game.map.map[i][j].type==1 && game.map.map[i][j].food > 0 && self.map[i][j].opacity==1) {
+						var distance = getDistance({x:i,y:j},self.coordinates);
+						minDistance = Math.min(minDistance,distance);
+						closedFood.push({coordinates:{x:i,y:j},distance:distance});
+					}
+				}
+			}
+			range++;
+		}
+
+		closedFood = closedFood.filter(function(zone) {
+		    return zone.distance == minDistance;
+		});
+
+		return closedFood;
     }
 
     this.getClosedUnknownZone = function() {
@@ -1520,6 +1548,16 @@ var Opponent = function (id,name,coordinates) {
 					direction = self.getDirection(closedWater[getRandom(0,closedWater.length-1)].coordinates);
     				randomDirection = false;
     				//console.log("water go to "+direction);
+    			}
+    		}
+    	}
+    	if (randomDirection) {
+    		if (self.food < self.foodLimit) {
+    			var closedFood = self.getClosedFood();
+    			if (closedFood.length) {
+					direction = self.getDirection(closedFood[getRandom(0,closedFood.length-1)].coordinates);
+    				randomDirection = false;
+    				//console.log("food go to "+direction);
     			}
     		}
     	}
