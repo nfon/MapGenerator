@@ -1921,7 +1921,10 @@ var Game = function() {
 	}
 
 	this.start = function() {
-		self.gameSpeed = 1;	
+		self.gameSpeed = 1;
+		$("#pause").removeClass("hide");
+		$("#play").addClass("hide");
+		$("#speed").text(self.gameSpeed);
 		/*	
 			Hero.prototype = Object.create(Player.prototype); 
 			Hero.prototype.constructor = Player;
