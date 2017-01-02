@@ -590,6 +590,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    var ships = game.ships.ships.filter(function(ship){
 			return ship.on==true;
 		});
+
 		if (ships.length) {
 			var color = [[0,0,0],[144,144,144]];
 			/*
@@ -632,7 +633,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 
 		    for (s in ships)
 		    {
-		    	var ship = game.ships.ships[s];
+		    	var ship = ships[s];
     	    	for (var j=0;j<ship_model.length;j++) {
 			    	var point = ship_model[j];
 			    	if ( (point.x+ship.coordinates.x-16)>0 && (point.x+ship.coordinates.x-16)<game.map.mapL && (point.y+ship.coordinates.y)>0 && (point.y+ship.coordinates.y)<game.map.mapH ) {
