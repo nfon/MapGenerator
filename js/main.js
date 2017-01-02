@@ -380,6 +380,46 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		}
 	}
 
+	this.getDirection = function(origin,coordinates) {
+    	var direction;
+    	var deltaX = origin.x - coordinates.x;
+    	var deltaY = origin.y - coordinates.y;
+    	
+    	if (deltaX != 0) {
+    		if (deltaY != 0) {
+    			if (deltaX > 0) {
+    				if (deltaY > 0)
+    					direction = 0;
+    				else
+    					direction = 5;
+    			}
+    			else {
+					if (deltaY > 0)
+    					direction = 2;
+    				else
+    					direction = 7;
+    			}
+    		}
+    		else {
+    			if (deltaX > 0)
+					direction = 3;
+    			else
+					direction = 4;
+    		}
+    	}
+    	else {
+    		if (deltaY > 0)
+				direction = 1;
+			else	
+				direction = 6;
+    	}
+    	return direction;
+    }
+
+    this.getReverseDirection = function(direction) {
+    	return 7-direction;
+    }
+
 	this.lightSurroundingPlayer = function(o) {
 		if (o>=0)
 			var player = game.opponents.opponents[o];
@@ -546,6 +586,67 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	    		}
 		    }
 	    }
+		
+	    var ships = game.ships.ships.filter(function(ship){
+			return ship.on==true;
+		});
+		if (ships.length) {
+			var color = [[0,0,0],[144,144,144]];
+			/*
+			[0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7]
+			[_,_,_,0,0,_,_,_,_,_,_,_,_,_,_,_,_,_]
+			[_,_,_,_,0,0,0,_,_,_,_,_,_,_,_,_,_,_]
+			[_,_,_,_,0,1,0,0,0,_,_,_,_,_,_,_,_,_]
+			[_,0,_,_,_,0,1,1,0,0,0,_,_,_,_,_,_,_]
+			[_,_,0,0,_,0,0,1,1,1,0,0,0,_,_,_,_,_]
+			[_,_,_,_,0,_,0,1,0,1,1,1,0,0,_,_,_,_]
+			[0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,_,_]
+			[0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,_]
+			[0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,_,_]
+			[_,_,_,_,0,_,0,1,0,1,1,1,0,0,_,_,_,_]
+			[_,_,0,0,_,0,0,1,1,1,0,0,0,_,_,_,_,_]
+			[_,0,_,_,_,0,1,1,0,0,0,_,_,_,_,_,_,_]
+			[_,_,_,_,0,1,0,0,0,_,_,_,_,_,_,_,_,_]
+			[_,_,_,_,0,0,0,_,_,_,_,_,_,_,_,_,_,_]
+			[_,_,_,0,0,_,_,_,_,_,_,_,_,_,_,_,_,_]
+			*/
+
+
+
+			var ship_model = [{x:3,y:0,color:0},{x:4,y:0,color:0},
+			 {x:4,y:1,color:0},{x:5,y:1,color:0},{x:6,y:1,color:0},
+			 {x:4,y:2,color:0},{x:5,y:2,color:1},{x:6,y:2,color:0},{x:7,y:2,color:0},{x:8,y:2,color:0},
+			 {x:1,y:3,color:0},{x:5,y:3,color:0},{x:6,y:3,color:1},{x:7,y:3,color:1},{x:8,y:3,color:0},{x:9,y:3,color:0},{x:10,y:3,color:0},
+			 {x:2,y:4,color:0},{x:3,y:4,color:0},{x:5,y:4,color:0},{x:6,y:4,color:0},{x:7,y:4,color:1},{x:8,y:4,color:1},{x:9,y:4,color:1},{x:10,y:4,color:0},{x:11,y:4,color:0},{x:12,y:4,color:0},
+			 {x:4,y:5,color:0},{x:6,y:5,color:0},{x:7,y:5,color:1},{x:8,y:5,color:0},{x:9,y:5,color:1},{x:10,y:5,color:1},{x:11,y:5,color:1},{x:12,y:5,color:0},{x:13,y:5,color:0},
+			
+			 {x:0,y:6,color:0},{x:1,y:6,color:0},{x:2,y:6,color:0},{x:3,y:6,color:0},{x:4,y:6,color:0},{x:5,y:6,color:0},{x:6,y:6,color:0},{x:7,y:6,color:0},{x:8,y:6,color:1},{x:9,y:6,color:1},{x:10,y:6,color:1},{x:11,y:6,color:1},{x:12,y:6,color:1},{x:13,y:6,color:0},{x:14,y:6,color:0},{x:15,y:6,color:0},
+			 {x:0,y:7,color:0},{x:1,y:7,color:1},{x:2,y:7,color:0},{x:3,y:7,color:1},{x:4,y:7,color:1},{x:5,y:7,color:1},{x:6,y:7,color:1},{x:7,y:7,color:1},{x:8,y:7,color:1},{x:9,y:7,color:1},{x:10,y:7,color:0},{x:11,y:7,color:1},{x:12,y:7,color:1},{x:13,y:7,color:1},{x:14,y:7,color:1},{x:15,y:7,color:0},{x:16,y:7,color:0},
+			 {x:0,y:8,color:0},{x:1,y:8,color:0},{x:2,y:8,color:0},{x:3,y:8,color:0},{x:4,y:8,color:0},{x:5,y:8,color:0},{x:6,y:8,color:0},{x:7,y:8,color:0},{x:8,y:8,color:1},{x:9,y:8,color:1},{x:10,y:8,color:1},{x:11,y:8,color:1},{x:12,y:8,color:1},{x:13,y:8,color:0},{x:14,y:8,color:0},{x:15,y:8,color:0},
+			 {x:4,y:9,color:0},{x:6,y:9,color:0},{x:7,y:9,color:1},{x:8,y:9,color:0},{x:9,y:9,color:1},{x:10,y:9,color:1},{x:11,y:9,color:1},{x:12,y:9,color:0},{x:13,y:9,color:0},
+			 {x:2,y:10,color:0},{x:3,y:10,color:0},{x:5,y:10,color:0},{x:6,y:10,color:0},{x:7,y:10,color:1},{x:8,y:10,color:1},{x:9,y:10,color:1},{x:10,y:10,color:0},{x:11,y:10,color:0},{x:12,y:10,color:0},
+			 {x:1,y:11,color:0},{x:5,y:11,color:0},{x:6,y:11,color:1},{x:7,y:11,color:1},{x:8,y:11,color:0},{x:9,y:11,color:0},{x:10,y:11,color:0},
+			 {x:4,y:12,color:0},{x:5,y:12,color:1},{x:6,y:12,color:0},{x:7,y:12,color:0},{x:8,y:12,color:0},
+			 {x:4,y:13,color:0},{x:5,y:13,color:0},{x:6,y:13,color:0},
+			 {x:3,y:14,color:0},{x:4,y:14,color:0}];
+		    var opacity = 255;
+
+		    for (s in ships)
+		    {
+		    	var ship = game.ships.ships[s];
+    	    	for (var j=0;j<ship_model.length;j++) {
+			    	var point = ship_model[j];
+					var i = (point.y+ship.coordinates.y)*self.mapL*4 + (point.x+ship.coordinates.x-16)*4;
+					if (i>=0 && i<imgData.data.length) {
+						imgData.data[i] = color[point.color][0];
+						imgData.data[i+1] = color[point.color][1];
+						imgData.data[i+2] = color[point.color][2];
+						imgData.data[i+3] = 255*opacity;
+					}
+			    }
+			}
+		}
+
 
 		ctx1.putImageData(imgData, 0, 0);
 
@@ -1285,46 +1386,6 @@ var Player = function() {
     	return {x:x/len,y:y/len};
     }
 
-    this.getDirection = function(coordinates) {
-    	var direction;
-    	var deltaX = self.coordinates.x - coordinates.x;
-    	var deltaY = self.coordinates.y - coordinates.y;
-    	
-    	if (deltaX != 0) {
-    		if (deltaY != 0) {
-    			if (deltaX > 0) {
-    				if (deltaY > 0)
-    					direction = 0;
-    				else
-    					direction = 5;
-    			}
-    			else {
-					if (deltaY > 0)
-    					direction = 2;
-    				else
-    					direction = 7;
-    			}
-    		}
-    		else {
-    			if (deltaX > 0)
-					direction = 3;
-    			else
-					direction = 4;
-    		}
-    	}
-    	else {
-    		if (deltaY > 0)
-				direction = 1;
-			else	
-				direction = 6;
-    	}
-    	return direction;
-    }
-
-    this.getReverseDirection = function(direction) {
-    	return 7-direction;
-    }
-
     this.checkSurroundings = function() {
 
 		var closedOpponents = self.getClosedOpponents(1);
@@ -1495,6 +1556,69 @@ var Hero = function(name,coordinates) {
 	this.bind();
 }
 
+var Ships = function() {
+	this.delayShip = 50;
+	this.lastShipMove = Date.now();
+	this.ticker;
+	this.ships = [];
+	this.needTick = false;
+	var self = this;
+
+	this.startTicking = function() {
+		if (self.ticker)
+			cancelAnimationFrame(self.tick);
+		self.tick();
+	}
+
+	this.tick = function() {
+		if (game.gameOn && self.needTick) {
+			if (Date.now()-self.lastShipMove>self.delayShip*game.gameSpeed) {
+				self.lastShipMove = Date.now();
+		    	var ships = self.ships.filter(function(ship){
+					return ship.on==true;
+				});
+				if (ships.length==0)
+					self.needTick=false;
+				else {
+					for (var i in ships) {
+						ships[i].move();
+					}
+				}
+			}
+			self.ticker = requestAnimationFrame(self.tick);
+		}
+	}
+
+	this.addShip = function() {
+		self.ships.push(new Ship({x:0,y:50}, {x:game.map.mapL-1,y:50}));
+		self.needTick = true;
+		self.startTicking();
+	}
+}
+
+var Ship = function(coordinates,destination) {
+	this.coordinates={x:coordinates.x,y:coordinates.y};
+	this.destination={x:destination.x,y:destination.y};
+	this.direction=game.map.getDirection(coordinates,destination);
+	this.on=true;
+	var self = this;
+
+	this.move = function() {
+		switch(self.direction) {
+			case 0 : self.coordinates.x=self.coordinates.x-1; self.coordinates.y=self.coordinates.y-1; break;
+			case 1 : self.coordinates.y=self.coordinates.y-1; break;
+			case 2 : self.coordinates.x=self.coordinates.x+1; self.coordinates.y=self.coordinates.y-1; break;
+			case 3 : self.coordinates.x=self.coordinates.x-1; break;
+			case 4 : self.coordinates.x=self.coordinates.x+1; break;
+			case 5 : self.coordinates.x=self.coordinates.x-1; self.coordinates.y=self.coordinates.y+1; break;
+			case 6 : self.coordinates.y=self.coordinates.y+1; break;
+			case 7 : self.coordinates.x=self.coordinates.x+1; self.coordinates.y=self.coordinates.y+1; break;
+		}
+		if (self.coordinates.x==self.destination.x+16 && self.coordinates.y == self.destination.y)
+			self.on=false;
+	}
+}
+
 var Opponents = function(playerNb) {
 	this.playerNb = playerNb;
 	this.delayOpponent = 500;
@@ -1562,7 +1686,7 @@ var Opponent = function (id,name,coordinates) {
     	if (game.map.lavaStep> 0 ) {
     		var closedLava = self.getClosedLava();
     		if (closedLava.length) {
-				direction = self.getReverseDirection(self.getDirection(self.getAverageCoord(closedLava)));//peut être pas average (médiane ?)
+				direction = game.map.getReverseDirection(game.map.getDirection(self.coordinates,self.getAverageCoord(closedLava)));//peut être pas average (médiane ?)
     			randomDirection = false;
 				//console.log("lava go to "+direction);
     		}
@@ -1571,17 +1695,17 @@ var Opponent = function (id,name,coordinates) {
 	    	var closedOpponents = self.getClosedOpponents(2);
 	    	if (closedOpponents.length) {
 	    		if (closedOpponents[0].player.health) {
-					direction = self.getDirection(self.getAverageCoord(closedOpponents,"player"));
+					direction = game.map.getDirection(self.coordinates,self.getAverageCoord(closedOpponents,"player"));
     				randomDirection = false;
 					//console.log("opponents go to "+direction);
 	    			if (self.health<=self.healthLimit || (!self.hasWeapon() && getRandom(0,3)<=2) ) {//run away if no health (100%) or no weapon (66%)
-	    				direction = self.getReverseDirection(direction);
+	    				direction = game.map.getReverseDirection(direction);
     					//console.log("opponents run away go to "+direction+" "+self.health+" "+self.healthLimit);
 	    			}
 	    		}
 	    		else {
 	    			if (closedOpponents[0].player.inventory.length) {
-						direction = self.getDirection(closedOpponents[0].player.coordinates);
+						direction = game.map.getDirection(self.coordinates,closedOpponents[0].player.coordinates);
 	    				randomDirection = false;
     					//console.log("corpse go to "+direction);
 	    			}
@@ -1592,7 +1716,7 @@ var Opponent = function (id,name,coordinates) {
     		if (self.water < self.waterLimit) {
     			var closedWater = self.getClosedWater();
     			if (closedWater.length) {
-					direction = self.getDirection(closedWater[getRandom(0,closedWater.length-1)].coordinates);
+					direction = game.map.getDirection(self.coordinates,closedWater[getRandom(0,closedWater.length-1)].coordinates);
     				randomDirection = false;
     				//console.log("water go to "+direction);
     			}
@@ -1602,7 +1726,7 @@ var Opponent = function (id,name,coordinates) {
     		if (self.food < self.foodLimit) {
     			var closedFood = self.getClosedFood();
     			if (closedFood.length) {
-					direction = self.getDirection(closedFood[getRandom(0,closedFood.length-1)].coordinates);
+					direction = game.map.getDirection(self.coordinates,closedFood[getRandom(0,closedFood.length-1)].coordinates);
     				randomDirection = false;
     				//console.log("food go to "+direction);
     			}
@@ -1611,7 +1735,7 @@ var Opponent = function (id,name,coordinates) {
 		if (randomDirection) {
 			var closedItems = self.getClosedItems();//warning : if the player is fully loaded he will probably stay static
 			if (closedItems.length) {
-				direction = self.getDirection(closedItems[0].item.coordinates);
+				direction = game.map.getDirection(self.coordinates,closedItems[0].item.coordinates);
 				randomDirection = false;
     			//console.log("item go to "+direction);
 			}
@@ -1620,7 +1744,7 @@ var Opponent = function (id,name,coordinates) {
 	    if (randomDirection) {
 	    	var closedUnknownZone = self.getClosedUnknownZone();
 			if (closedUnknownZone.length) {
-				direction = self.getDirection(closedUnknownZone[getRandom(0,closedUnknownZone.length-1)].coordinates);
+				direction = game.map.getDirection(self.coordinates,closedUnknownZone[getRandom(0,closedUnknownZone.length-1)].coordinates);
 				randomDirection = false;
     			//console.log("unknown go to "+direction);
 			}
@@ -1723,6 +1847,7 @@ var Game = function() {
 	this.hero;
 	this.name;
 	this.map;
+	this.ships;
 	this.gameSpeed = 1;
 	this.gameOn;
 	this.debugMode = false;
@@ -1731,9 +1856,9 @@ var Game = function() {
 	var self = this;
 
 	this.welcome = function() {
-		game.start();
+		//game.start();
 
-		//modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
+		modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
 	}
 
 	this.saveName = function() {
@@ -1825,6 +1950,10 @@ var Game = function() {
 			self.map.rain();
 		});
 
+		$("#ship").on("click",function(){
+			self.ships.addShip();
+		});
+
 
 		$("#slower").on("click",function(){
 			self.gameSpeed+=0.1;
@@ -1889,6 +2018,8 @@ var Game = function() {
 			Opponent.prototype.constructor = Player;
 
 			self.opponents = new Opponents(playerNb);
+
+			self.ships = new Ships();
 
 			self.gameSpeed = 99999999;
 			self.welcome();
