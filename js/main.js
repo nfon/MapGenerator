@@ -825,6 +825,7 @@ var Sounds = function() {
 	this.init = function() {
 		self.sounds["canon"] = new Sound("#canon_sound");
 		self.sounds["rain"] = new Sound("#rain_sound");
+		self.sounds["ship"] = new Sound("#ship_sound");
 	}
 	self.init();
 }
@@ -1557,7 +1558,7 @@ var Hero = function(name,coordinates) {
 }
 
 var Ships = function() {
-	this.delayShip = 50;
+	this.delayShip = 40;
 	this.lastShipMove = Date.now();
 	this.ticker;
 	this.ships = [];
@@ -1577,8 +1578,10 @@ var Ships = function() {
 		    	var ships = self.ships.filter(function(ship){
 					return ship.on==true;
 				});
-				if (ships.length==0)
+				if (ships.length==0) {
 					self.needTick=false;
+    				game.sounds.sounds["ship"].stop();
+				}
 				else {
 					for (var i in ships) {
 						ships[i].move();
@@ -1592,6 +1595,8 @@ var Ships = function() {
 	this.addShip = function() {
 		self.ships.push(new Ship({x:0,y:50}, {x:game.map.mapL-1,y:50}));
 		self.needTick = true;
+    	game.sounds.sounds["ship"].play();
+
 		self.startTicking();
 	}
 }
