@@ -636,7 +636,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    	var ship = ships[s];
     	    	for (var j=0;j<ship_model.length;j++) {
 			    	var point = ship_model[j];
-			    	if ( (point.x+ship.coordinates.x-16)>0 && (point.x+ship.coordinates.x-16)<game.map.mapL && (point.y+ship.coordinates.y)>0 && (point.y+ship.coordinates.y)<game.map.mapH ) {
+			    	if ( (point.x+ship.coordinates.x-16)>=0 && (point.x+ship.coordinates.x-16)<game.map.mapL && (point.y+ship.coordinates.y)>=0 && (point.y+ship.coordinates.y)<game.map.mapH ) {
 						var i = (point.y+ship.coordinates.y)*self.mapL*4 + (point.x+ship.coordinates.x-16)*4;
 						if (i>=0 && i<imgData.data.length) {
 							imgData.data[i] = color[point.color][0];
