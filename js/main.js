@@ -612,7 +612,6 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			*/
 
 
-
 			var ship_model = [{x:3,y:0,color:0},{x:4,y:0,color:0},
 			 {x:4,y:1,color:0},{x:5,y:1,color:0},{x:6,y:1,color:0},
 			 {x:4,y:2,color:0},{x:5,y:2,color:1},{x:6,y:2,color:0},{x:7,y:2,color:0},{x:8,y:2,color:0},
@@ -636,12 +635,14 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    	var ship = game.ships.ships[s];
     	    	for (var j=0;j<ship_model.length;j++) {
 			    	var point = ship_model[j];
-					var i = (point.y+ship.coordinates.y)*self.mapL*4 + (point.x+ship.coordinates.x-16)*4;
-					if (i>=0 && i<imgData.data.length) {
-						imgData.data[i] = color[point.color][0];
-						imgData.data[i+1] = color[point.color][1];
-						imgData.data[i+2] = color[point.color][2];
-						imgData.data[i+3] = 255*opacity;
+			    	if ( (point.x+ship.coordinates.x-16)>0 && (point.x+ship.coordinates.x-16)<game.map.mapL && (point.y+ship.coordinates.y)>0 && (point.y+ship.coordinates.y)<game.map.mapH ) {
+						var i = (point.y+ship.coordinates.y)*self.mapL*4 + (point.x+ship.coordinates.x-16)*4;
+						if (i>=0 && i<imgData.data.length) {
+							imgData.data[i] = color[point.color][0];
+							imgData.data[i+1] = color[point.color][1];
+							imgData.data[i+2] = color[point.color][2];
+							imgData.data[i+3] = 255*opacity;
+						}
 					}
 			    }
 			}
@@ -1596,7 +1597,6 @@ var Ships = function() {
 		self.ships.push(new Ship({x:0,y:50}, {x:game.map.mapL-1,y:50}));
 		self.needTick = true;
     	game.sounds.sounds["ship"].play();
-
 		self.startTicking();
 	}
 }
