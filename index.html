@@ -96,6 +96,8 @@
 				</div>
 				<input type="submit" value="Generate">
 				<input id="lava" type="button" value="Release Lava">
+				<input id="rain" type="button" value="Release Rain">
+
 			</form>
 		</div>
 	</div>
@@ -146,9 +148,13 @@
 			<div id="messages" class="hide" style="height:450px; overflow-y: auto"></div>
 		</div>
 	</div>
-	<audio id="canon">
+	<audio id="canon_sound">
   		<source src="audio/canon.mp3" type="audio/mp3">
   		<source src="audio/canon.ogg" type="audio/ogg">
+	</audio>
+	<audio id="rain_sound">
+  		<source src="audio/rain.mp3" type="audio/mp3">
+  		<source src="audio/rain.ogg" type="audio/ogg">
 	</audio>
 
 	<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel">

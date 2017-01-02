@@ -73,7 +73,9 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 	this.mapL = mapL;
 	this.mapH = mapH;
 	this.lavaStep = 0;
-	this.lavaDelay = Date.now();;
+	this.lavaDelay = Date.now();
+	this.rainStep = 0;
+	this.rainDelay = Date.now();
 	this.heightMin = heightMin;
 	this.heightMax = heightMax;
 
@@ -361,6 +363,23 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		self.lavaStep++;
 	}
 
+	this.rain = function() {
+		if (self.rainStep==0)
+    		game.sounds.sounds["rain"].play();
+		if (self.rainStep<3)
+			self.rainStep++;
+		else
+		{
+			for (var o in game.opponents.opponents) {
+    			var opp = game.opponents.opponents[o];
+    			opp.water=opp.waterMax;
+			}
+    		game.sounds.sounds["rain"].stop();
+			self.generateLakes();
+			self.rainStep=0;
+		}
+	}
+
 	this.lightSurroundingPlayer = function(o) {
 		if (o>=0)
 			var player = game.opponents.opponents[o];
@@ -407,6 +426,10 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		var gLava = [150,76,38];
 		var bLava = [37,37,1];
 
+		var rRain = [66,84,93];
+		var gRain = [198,183,203];
+		var bRain = [255,214,237];
+
 		var c2 = $("#map>canvas")[0];
 		var ctx2 = c2.getContext("2d");
 
@@ -435,7 +458,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
     		if (self.map[x][y].type==2) {
 		    	imgData.data[i] = rLava[getRandomNormal(0,2)];
 	    		imgData.data[i+1] = gLava[getRandomNormal(0,2)];
-	    		imgData.data[i+2] = bLava[getRandomNormal(0,2)];;
+	    		imgData.data[i+2] = bLava[getRandomNormal(0,2)];
 	    		imgData.data[i+3] = 255*opacity;
 		    }
 		    else {
@@ -506,9 +529,24 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 		    	imgData.data[i+1] = 0;
 		    	imgData.data[i+2] = 0;
 		    	imgData.data[i+3] = 255;
-	    		opacity=255;
 	    	}
 	    }
+
+	    if (self.rainStep) {
+			for (var i=4; i<imgData.data.length; i+=4) {
+			    var x = (i/4)%self.mapL;
+			    var y = Math.floor(i/4/self.mapL);
+			    var opacity = self.map[x][y].tempOpacity;
+
+			    if (getRandom(0,10)<4-self.rainStep) {
+	    			imgData.data[i] = rRain[getRandomNormal(0,2)];
+	    			imgData.data[i+1] = gRain[getRandomNormal(0,2)];
+	    			imgData.data[i+2] = bRain[getRandomNormal(0,2)];
+	    			imgData.data[i+3] = 255*opacity;
+	    		}
+		    }
+	    }
+
 		ctx1.putImageData(imgData, 0, 0);
 
 		c2.width = self.mapL*5;
@@ -530,9 +568,17 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 				if (self.lavaStep>=self.mapH/3)
 					delay = 10000000000;
 
-				if ((Date.now()-self.lavaDelay>delay*game.gameSpeed) ) {
+				if ( (Date.now()-self.lavaDelay>delay*game.gameSpeed) ) {
 					self.releaseLava();
 					self.lavaDelay = Date.now();
+				}
+			}
+
+			if (self.rainStep) {
+				var delay = 5000;
+				if ( (Date.now()-self.rainDelay>delay*game.gameSpeed) ) {
+					self.rain();
+					self.rainDelay = Date.now();
 				}
 			}
 
@@ -676,7 +722,8 @@ var Sounds = function() {
 	var self = this;
 
 	this.init = function() {
-		self.sounds["canon"] = new Sound("#canon");
+		self.sounds["canon"] = new Sound("#canon_sound");
+		self.sounds["rain"] = new Sound("#rain_sound");
 	}
 	self.init();
 }
@@ -1684,9 +1731,9 @@ var Game = function() {
 	var self = this;
 
 	this.welcome = function() {
-		//game.start();
+		game.start();
 
-		modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
+		//modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
 	}
 
 	this.saveName = function() {
@@ -1773,6 +1820,11 @@ var Game = function() {
 		$("#lava").on("click",function(){
 			self.map.releaseLava();
 		});
+
+		$("#rain").on("click",function(){
+			self.map.rain();
+		});
+
 
 		$("#slower").on("click",function(){
 			self.gameSpeed+=0.1;
