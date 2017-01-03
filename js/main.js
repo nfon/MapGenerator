@@ -877,6 +877,13 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin",7));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub",7));
 	}
+
+	this.getGenericItemByName = function(name) {
+    	var result = [];
+    	if (self.genericItems.length)
+    		result = $.grep(self.genericItems, function(e){ return e.name == name; });
+    	return result[0];
+	}
 	this.generate();
 }
 
@@ -902,8 +909,13 @@ var Items = function(itemNb) {
 			var x = getRandom(0,game.map.mapL-1);
 			var y = getRandom(0,game.map.mapH-1);
 			var item = chance.weighted(game.genericItems.genericItems, weights);
-			self.items.push(new Item($.extend(true, [],item),{x:x,y:y},false));
+			self.addItem(item,x,y);
 		}
+	}
+
+	this.addItem = function(item,x,y) {
+		console.log(item);
+		self.items.push(new Item($.extend(true, [],item),{x:x,y:y},false));
 	}
 
 	this.hasItem = function(coordinates) {
@@ -1597,17 +1609,20 @@ var Ships = function() {
 
 	this.addShip = function(id) {
 		var target = game.opponents.opponents[id];
-		self.ships.push(new Ship(id));
+		self.ships.push(new Ship(id,"medipack"));
 		self.needTick = true;
     	game.sounds.sounds["ship"].play();
 		self.startTicking();
 	}
 }
 
-var Ship = function(id,coordinates) {
+var Ship = function(id,name) {
 	var target = game.opponents.opponents[id];
 	this.coordinates={x:0,y:target.coordinates.y-7};
 	this.target=id;
+	this.dropped = false;
+	this.item = game.genericItems.getGenericItemByName(name);
+	console.log(this.item);
 	this.on=true;
 	var self = this;
 
@@ -1616,6 +1631,21 @@ var Ship = function(id,coordinates) {
 		self.destination = {x:game.map.mapL-1,y:target.coordinates.y-7};
 		if (self.coordinates.x < self.destination.x)
 			self.direction = game.map.getDirection(self.coordinates,self.destination);
+		else {
+			if (!self.dropped) {
+				self.drop();
+			}
+		}
+	}
+
+	this.drop = function() {
+		var target = game.opponents.opponents[self.target];
+		console.log(target.coordinates.x,target.coordinates.y);
+		console.log(game.items.items.length-1);
+		game.items.addItem(self.item,target.coordinates.x,target.coordinates.y);
+		console.log(game.items.items.length-1);
+		console.log(game.items.items[game.items.items.length-1]);
+		self.dropped = true;
 	}
 
 	this.move = function() {
