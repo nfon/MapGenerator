@@ -619,7 +619,6 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			 {x:1,y:3,color:0},{x:5,y:3,color:0},{x:6,y:3,color:1},{x:7,y:3,color:1},{x:8,y:3,color:0},{x:9,y:3,color:0},{x:10,y:3,color:0},
 			 {x:2,y:4,color:0},{x:3,y:4,color:0},{x:5,y:4,color:0},{x:6,y:4,color:0},{x:7,y:4,color:1},{x:8,y:4,color:1},{x:9,y:4,color:1},{x:10,y:4,color:0},{x:11,y:4,color:0},{x:12,y:4,color:0},
 			 {x:4,y:5,color:0},{x:6,y:5,color:0},{x:7,y:5,color:1},{x:8,y:5,color:0},{x:9,y:5,color:1},{x:10,y:5,color:1},{x:11,y:5,color:1},{x:12,y:5,color:0},{x:13,y:5,color:0},
-			
 			 {x:0,y:6,color:0},{x:1,y:6,color:0},{x:2,y:6,color:0},{x:3,y:6,color:0},{x:4,y:6,color:0},{x:5,y:6,color:0},{x:6,y:6,color:0},{x:7,y:6,color:0},{x:8,y:6,color:1},{x:9,y:6,color:1},{x:10,y:6,color:1},{x:11,y:6,color:1},{x:12,y:6,color:1},{x:13,y:6,color:0},{x:14,y:6,color:0},{x:15,y:6,color:0},
 			 {x:0,y:7,color:0},{x:1,y:7,color:1},{x:2,y:7,color:0},{x:3,y:7,color:1},{x:4,y:7,color:1},{x:5,y:7,color:1},{x:6,y:7,color:1},{x:7,y:7,color:1},{x:8,y:7,color:1},{x:9,y:7,color:1},{x:10,y:7,color:0},{x:11,y:7,color:1},{x:12,y:7,color:1},{x:13,y:7,color:1},{x:14,y:7,color:1},{x:15,y:7,color:0},{x:16,y:7,color:0},
 			 {x:0,y:8,color:0},{x:1,y:8,color:0},{x:2,y:8,color:0},{x:3,y:8,color:0},{x:4,y:8,color:0},{x:5,y:8,color:0},{x:6,y:8,color:0},{x:7,y:8,color:0},{x:8,y:8,color:1},{x:9,y:8,color:1},{x:10,y:8,color:1},{x:11,y:8,color:1},{x:12,y:8,color:1},{x:13,y:8,color:0},{x:14,y:8,color:0},{x:15,y:8,color:0},
@@ -1607,14 +1606,14 @@ var Ships = function() {
 
 var Ship = function(id,coordinates) {
 	var target = game.opponents.opponents[id];
-	this.coordinates={x:0,y:target.coordinates.y};
+	this.coordinates={x:0,y:target.coordinates.y-7};
 	this.target=id;
 	this.on=true;
 	var self = this;
 
 	this.updateDestination = function() {
 		var target = game.opponents.opponents[self.target];
-		self.destination = {x:game.map.mapL-1,y:target.coordinates.y};
+		self.destination = {x:game.map.mapL-1,y:target.coordinates.y-7};
 		if (self.coordinates.x < self.destination.x)
 			self.direction = game.map.getDirection(self.coordinates,self.destination);
 	}
