@@ -718,6 +718,8 @@ var Ui = function() {
 	    	$playerTracker = self.$tracker.find("#id_"+player.id);
 	    	if (player.health==0) {
 	    		player.follow=false;//hide the path of the dead ones
+	    		if (player.id==0 || player.id==1)
+	    			$(".ship[data-id="+player.id+"]").attr("disabled",true);
 	    		$playerTracker.find("input").prop('disabled',true);
 	    		$playerTracker.find("polyline")[0].setAttribute("points",hearth[2]);
 	    		$playerTracker.addClass("dead");
