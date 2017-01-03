@@ -60,7 +60,7 @@ function getForm(name,value,min,max,step) {
 	return "<div class='form-group'>"+
 		"<label for='"+name+"' class='col-sm-2 control-label'>"+name.charAt(0).toUpperCase()+name.slice(1)+"</label>"+
 		"<div class='col-sm-8 input-group'>"+
-		"<span class='input-group-btn'><button class='btn btn-white btn-minuse' type='button'>-</button></span>"+
+		"<span class='input-group-btn'><button class='btn btn-white btn-minuse' type='button' disabled='true'>-</button></span>"+
 		"<input type='number' class='form-control no-padding text-center' min='"+min+"' max='"+max+"' step='"+step+"' name='"+name+"' origin='"+value+"' value='"+value+"'>"+
 		"<span class='input-group-btn'><button class='btn btn-red btn-pluss' type='button'>+</button></span>"+
 		"</div></div>";
@@ -1891,8 +1891,8 @@ var Game = function() {
 					 "<p>Available points:<span id='availablePoints'>100</span></p>"+
 					 "</div>";
 		modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"? Let's train <b>"+self.opponents.opponents[0].name+"</b>!</p>"+skills,"","Let's train "+self.opponents.opponents[1].name+" now!",null,game.train0);
-		
-		$('.btn-minuse').off().on('click', function(){
+
+		$('#modal .btn-minuse').off().on('click', function(){
 			availablePoints
 			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
 			var origin = parseInt($(this).parent().siblings('input').attr("origin"),10);
@@ -1901,21 +1901,29 @@ var Game = function() {
 				$(this).parent().siblings('input').val(val - step );
 				availablePoints+=step;
 				$("#availablePoints").text(availablePoints);
+				if (val-step == origin)
+					$(this).parent().parent().find('.btn-minuse').attr("disabled",true);
+			}
+			if (availablePoints>0) {
+				$('#modal .btn-pluss').removeAttr("disabled");
 			}
 		});
 
-		$('.btn-pluss').off().on('click', function(){
+		$('#modal .btn-pluss').off().on('click', function(){
 			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
 			if (availablePoints-step>=0) {
 				$(this).parent().siblings('input').val(parseInt($(this).parent().siblings('input').val(),10) + step );
+				$(this).parent().parent().find('.btn-minuse').removeAttr("disabled");
 				availablePoints-=step;
 				$("#availablePoints").text(availablePoints);
+			}
+			if (availablePoints==0) {
+				$('#modal .btn-pluss').attr("disabled",true);
 			}
 		});
 	}
 
 	this.train0 = function() {
-		console.log($("#modal").find("input[name=health]").val());
 		self.opponents.opponents[0].health = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[0].attack = parseInt($("#modal").find("input[name=attack]").val(),10);
 		self.opponents.opponents[0].vision = parseInt($("#modal").find("input[name=vision]").val(),10)/100;
@@ -1941,7 +1949,7 @@ var Game = function() {
 					 "</div>";
 		modal(false,"Let's train "+self.opponents.opponents[1].name+"!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p>"+skills,"","Let's check that!",null,game.train1);
 		
-		$('.btn-minuse').off().on('click', function(){
+		$('#modal .btn-minuse').off().on('click', function(){
 			availablePoints
 			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
 			var origin = parseInt($(this).parent().siblings('input').attr("origin"),10);
@@ -1950,15 +1958,24 @@ var Game = function() {
 				$(this).parent().siblings('input').val(val - step );
 				availablePoints+=step;
 				$("#availablePoints").text(availablePoints);
+				if (val-step == origin)
+					$(this).parent().parent().find('.btn-minuse').attr("disabled",true);
+			}
+			if (availablePoints>0) {
+				$('#modal .btn-pluss').removeAttr("disabled");
 			}
 		});
 
-		$('.btn-pluss').off().on('click', function(){
+		$('#modal .btn-pluss').off().on('click', function(){
 			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
 			if (availablePoints-step>=0) {
 				$(this).parent().siblings('input').val(parseInt($(this).parent().siblings('input').val(),10) + step );
+				$(this).parent().parent().find('.btn-minuse').removeAttr("disabled");
 				availablePoints-=step;
 				$("#availablePoints").text(availablePoints);
+			}
+			if (availablePoints==0) {
+				$('#modal .btn-pluss').attr("disabled",true);
 			}
 		});
 	}
@@ -1973,8 +1990,8 @@ var Game = function() {
 		self.opponents.opponents[1].weightMax =  parseInt($("#modal").find("input[name=weightMax]").val(),10);
 		self.opponents.opponents[1].gathering =  parseInt($("#modal").find("input[name=gathering]").val(),10);
 		
-		$('.btn-minuse').off();
-		$('.btn-pluss').off();
+		$('#modal .btn-minuse').off();
+		$('#modal .btn-pluss').off();
 
 		modal(false,"Wow! They seems ready now!","<p>"+self.name+", you did a great job! But now it's time for your champions to enter the arena! With that skills they will long last, maybe... <b></p><div id='container' style='min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto'></div>","","May the odd be with them!",null,game.preStart);
 		drawStats();
