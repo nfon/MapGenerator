@@ -2029,8 +2029,8 @@ var Game = function() {
 
 		self.map.$map.removeClass("hide");
 
-		$(".ship[data-id=0]").val("Send ship to "+self.opponents.opponents[0].name);
-		$(".ship[data-id=1]").val("Send ship to "+self.opponents.opponents[1].name);
+		$(".ship[data-id=0]").removeAttr("disabled").val("Send ship to "+self.opponents.opponents[0].name);
+		$(".ship[data-id=1]").removeAttr("disabled").val("Send ship to "+self.opponents.opponents[1].name);
 
 		$(".tempHide").removeClass("hide");
 	}
