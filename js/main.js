@@ -1868,15 +1868,15 @@ var Game = function() {
 	}
 
 	this.saveName = function() {
-		self.name = $("#modal").find("input[name]").val();
+		self.name = $("#modal").find("input[name=name]").val();
 
-		modal(false,"Look! Your champions are coming!","<p>They are <b>"+game.opponents.opponents[0].name+"</b> and <b>"+game.opponents.opponents[1].name+"</b>! Actually, they don't look that bad! They may survive the first minute...</p><p>"+self.name+" check their stats if you train them well they will be even better and who know they may be able to win!</p><div id='container' style='min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto'></div>","","Let's train them then!",null,game.train);
+		modal(false,"Look! Your champions are coming!","<p>They are <b>"+self.opponents.opponents[0].name+"</b> and <b>"+self.opponents.opponents[1].name+"</b>! Actually, they don't look that bad! They may survive the first minute...</p><p>"+self.name+" check their stats if you train them well they will be even better and who know they may be able to win!</p><div id='container' style='min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto'></div>","","Let's train them then!",null,game.train);
 		drawStats();
 	}
 
 //data: [opp1.vision*100, opp1.attack, opp1.range, opp1.foodMax, opp1.waterMax, opp1.weightMax, opp1.health, opp1.gathering],
 	this.train = function() {
-		var opp = game.opponents.opponents[0];
+		var opp = self.opponents.opponents[0];
 		var availablePoints = 100;
 		var skills = "<div class='row'><form class='form-horizontal'>"+
 					 getForm("health",opp.health,10,200,5)+
@@ -1890,7 +1890,7 @@ var Game = function() {
 					 "</form>"+
 					 "<p>Available points:<span id='availablePoints'>100</span></p>"+
 					 "</div>";
-		modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"?</p>"+skills,"","Let's start with "+game.opponents.opponents[0].name+"!",null,game.trainSkill0);
+		modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"? Let's train <b>"+self.opponents.opponents[0].name+"</b>!</p>"+skills,"","Let's train "+self.opponents.opponents[1].name+" now!",null,game.train0);
 		
 		$('.btn-minuse').off().on('click', function(){
 			availablePoints
@@ -1911,13 +1911,78 @@ var Game = function() {
 				availablePoints-=step;
 				$("#availablePoints").text(availablePoints);
 			}
-		});		    
+		});
 	}
 
-	this.trainSkill0 = function() {
+	this.train0 = function() {
+		console.log($("#modal").find("input[name=health]").val());
+		self.opponents.opponents[0].health = parseInt($("#modal").find("input[name=health]").val(),10);
+		self.opponents.opponents[0].attack = parseInt($("#modal").find("input[name=attack]").val(),10);
+		self.opponents.opponents[0].vision = parseInt($("#modal").find("input[name=vision]").val(),10)/100;
+		self.opponents.opponents[0].range = parseInt($("#modal").find("input[name=range]").val(),10);
+		self.opponents.opponents[0].foodMax = parseInt($("#modal").find("input[name=foodMax]").val(),10);
+		self.opponents.opponents[0].waterMax = parseInt($("#modal").find("input[name=waterMax]").val(),10);
+		self.opponents.opponents[0].weightMax = parseInt($("#modal").find("input[name=weightMax]").val(),10);
+		self.opponents.opponents[0].gathering = parseInt($("#modal").find("input[name=gathering]").val(),10);
+		
+		var opp = self.opponents.opponents[1];
+		var availablePoints = 100;
+		var skills = "<div class='row'><form class='form-horizontal'>"+
+					 getForm("health",opp.health,10,200,5)+
+					 getForm("attack",opp.attack,10,200,5)+
+					 getForm("vision",opp.vision*100,10,200,5)+
+					 getForm("range",opp.range,10,200,5)+
+					 getForm("foodMax",opp.foodMax,10,200,5)+
+					 getForm("waterMax",opp.waterMax,10,200,5)+
+					 getForm("weightMax",opp.weightMax,10,200,5)+
+					 getForm("gathering",opp.gathering,10,200,5)+
+					 "</form>"+
+					 "<p>Available points:<span id='availablePoints'>100</span></p>"+
+					 "</div>";
+		modal(false,"Let's train "+self.opponents.opponents[1].name+"!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p>"+skills,"","Let's check that!",null,game.train1);
+		
+		$('.btn-minuse').off().on('click', function(){
+			availablePoints
+			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
+			var origin = parseInt($(this).parent().siblings('input').attr("origin"),10);
+			var val = parseInt($(this).parent().siblings('input').val(),10);
+			if (val-step>=origin) {
+				$(this).parent().siblings('input').val(val - step );
+				availablePoints+=step;
+				$("#availablePoints").text(availablePoints);
+			}
+		});
+
+		$('.btn-pluss').off().on('click', function(){
+			var step = parseInt($(this).parent().siblings('input').attr("step"),10);
+			if (availablePoints-step>=0) {
+				$(this).parent().siblings('input').val(parseInt($(this).parent().siblings('input').val(),10) + step );
+				availablePoints-=step;
+				$("#availablePoints").text(availablePoints);
+			}
+		});
+	}
+
+	this.train1 = function() {
+		self.opponents.opponents[1].health = parseInt($("#modal").find("input[name=health]").val(),10);
+		self.opponents.opponents[1].attack =  parseInt($("#modal").find("input[name=attack]").val(),10);
+		self.opponents.opponents[1].vision =  parseInt($("#modal").find("input[name=vision]").val(),10)/100;
+		self.opponents.opponents[1].range =  parseInt($("#modal").find("input[name=range]").val(),10);
+		self.opponents.opponents[1].foodMax =  parseInt($("#modal").find("input[name=foodMax]").val(),10);
+		self.opponents.opponents[1].waterMax =  parseInt($("#modal").find("input[name=waterMax]").val(),10);
+		self.opponents.opponents[1].weightMax =  parseInt($("#modal").find("input[name=weightMax]").val(),10);
+		self.opponents.opponents[1].gathering =  parseInt($("#modal").find("input[name=gathering]").val(),10);
+		
+		$('.btn-minuse').off();
+		$('.btn-pluss').off();
+
+		modal(false,"Wow! They seems ready now!","<p>"+self.name+", you did a great job! But now it's time for your champions to enter the arena! With that skills they will long last, maybe... <b></p><div id='container' style='min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto'></div>","","May the odd be with them!",null,game.preStart);
+		drawStats();
+	}
+
+	this.preStart = function() {
 		closeModal();
-		game.start();
-		//modal(false,"Let's do this! Your champions have few points to allocate in their specs!","<p>Use the + to add points to a skill and a minus if you changed your mind.</p><p>Is that clear "+self.name+"?</p>","","Let's start with "+game.opponents.opponents[0].name+"!",null,game.trainSkill0);
+		self.start();
 	}
 
 	this.start = function() {
