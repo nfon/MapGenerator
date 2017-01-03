@@ -1598,21 +1598,29 @@ var Ships = function() {
 
 	this.addShip = function(id) {
 		var target = game.opponents.opponents[id];
-		self.ships.push(new Ship({x:0,y:target.coordinates.y}, {x:game.map.mapL-1,y:target.coordinates.y}));
+		self.ships.push(new Ship(id));
 		self.needTick = true;
     	game.sounds.sounds["ship"].play();
 		self.startTicking();
 	}
 }
 
-var Ship = function(coordinates,destination) {
-	this.coordinates={x:coordinates.x,y:coordinates.y};
-	this.destination={x:destination.x,y:destination.y};
-	this.direction=game.map.getDirection(coordinates,destination);
+var Ship = function(id,coordinates) {
+	var target = game.opponents.opponents[id];
+	this.coordinates={x:0,y:target.coordinates.y};
+	this.target=id;
 	this.on=true;
 	var self = this;
 
+	this.updateDestination = function() {
+		var target = game.opponents.opponents[self.target];
+		self.destination = {x:game.map.mapL-1,y:target.coordinates.y};
+		if (self.coordinates.x < self.destination.x)
+			self.direction = game.map.getDirection(self.coordinates,self.destination);
+	}
+
 	this.move = function() {
+		self.updateDestination();
 		switch(self.direction) {
 			case 0 : self.coordinates.x=self.coordinates.x-1; self.coordinates.y=self.coordinates.y-1; break;
 			case 1 : self.coordinates.y=self.coordinates.y-1; break;
