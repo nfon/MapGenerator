@@ -914,7 +914,6 @@ var Items = function(itemNb) {
 	}
 
 	this.addItem = function(item,x,y) {
-		console.log(item);
 		self.items.push(new Item($.extend(true, [],item),{x:x,y:y},false));
 	}
 
@@ -1622,7 +1621,6 @@ var Ship = function(id,name) {
 	this.target=id;
 	this.dropped = false;
 	this.item = game.genericItems.getGenericItemByName(name);
-	console.log(this.item);
 	this.on=true;
 	var self = this;
 
@@ -1640,11 +1638,7 @@ var Ship = function(id,name) {
 
 	this.drop = function() {
 		var target = game.opponents.opponents[self.target];
-		console.log(target.coordinates.x,target.coordinates.y);
-		console.log(game.items.items.length-1);
 		game.items.addItem(self.item,target.coordinates.x,target.coordinates.y);
-		console.log(game.items.items.length-1);
-		console.log(game.items.items[game.items.items.length-1]);
 		self.dropped = true;
 	}
 
