@@ -1926,7 +1926,7 @@ var Game = function() {
 	this.train0 = function() {
 		self.opponents.opponents[0].health = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[0].attack = parseInt($("#modal").find("input[name=attack]").val(),10);
-		self.opponents.opponents[0].vision = parseInt($("#modal").find("input[name=vision]").val(),10)/100;
+		self.opponents.opponents[0].vision = Math.round(parseInt($("#modal").find("input[name=vision]").val(),10)/100);
 		self.opponents.opponents[0].range = parseInt($("#modal").find("input[name=range]").val(),10);
 		self.opponents.opponents[0].foodMax = parseInt($("#modal").find("input[name=foodMax]").val(),10);
 		self.opponents.opponents[0].waterMax = parseInt($("#modal").find("input[name=waterMax]").val(),10);
@@ -1983,7 +1983,7 @@ var Game = function() {
 	this.train1 = function() {
 		self.opponents.opponents[1].health = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[1].attack =  parseInt($("#modal").find("input[name=attack]").val(),10);
-		self.opponents.opponents[1].vision =  parseInt($("#modal").find("input[name=vision]").val(),10)/100;
+		self.opponents.opponents[1].vision =  Math.round(parseInt($("#modal").find("input[name=vision]").val(),10)/100);
 		self.opponents.opponents[1].range =  parseInt($("#modal").find("input[name=range]").val(),10);
 		self.opponents.opponents[1].foodMax =  parseInt($("#modal").find("input[name=foodMax]").val(),10);
 		self.opponents.opponents[1].waterMax =  parseInt($("#modal").find("input[name=waterMax]").val(),10);
