@@ -1594,8 +1594,9 @@ var Ships = function() {
 		}
 	}
 
-	this.addShip = function() {
-		self.ships.push(new Ship({x:0,y:50}, {x:game.map.mapL-1,y:50}));
+	this.addShip = function(id) {
+		var target = game.opponents.opponents[id];
+		self.ships.push(new Ship({x:0,y:target.coordinates.y}, {x:game.map.mapL-1,y:target.coordinates.y}));
 		self.needTick = true;
     	game.sounds.sounds["ship"].play();
 		self.startTicking();
@@ -2025,11 +2026,11 @@ var Game = function() {
 		self.ui = new Ui();
 
 		self.map.$map.removeClass("hide");
-		$("#board").removeClass("hide");
-		$("#messages").removeClass("hide");
-		$("#legend").removeClass("hide");
-		$("#discovery").removeClass("hide");
-		$("#speedControl").removeClass("hide");
+
+		$(".ship[data-id=0]").val("Send ship to "+self.opponents.opponents[0].name);
+		$(".ship[data-id=1]").val("Send ship to "+self.opponents.opponents[1].name);
+
+		$(".tempHide").removeClass("hide");
 	}
 
 	this.bind = function() {
@@ -2041,10 +2042,9 @@ var Game = function() {
 			self.map.rain();
 		});
 
-		$("#ship").on("click",function(){
-			self.ships.addShip();
+		$(".ship").on("click",function(){
+			self.ships.addShip($(this).attr("data-id"));
 		});
-
 
 		$("#slower").on("click",function(){
 			self.gameSpeed+=0.1;
