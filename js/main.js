@@ -873,6 +873,7 @@ var GenericItems = function() {
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:200}],1.5,"armour",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"healthMax",type:"permanent",value:250}],2,"heavy armour",5));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"vision",type:"permanent",value:3}],1,"binocular",10));
+		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:25}],1.5,"small backpack",15));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"weightMax",type:"permanent",value:50}],2,"backpack",10));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"waterMax",type:"cumul",value:50}],2,"water skin",7));
 		self.genericItems.push(new GenericItem(i++,"object",[{property:"foodMax",type:"cumul",value:50}],2,"plastic tub",7));
@@ -994,7 +995,7 @@ var Player = function() {
     	if (item) {
     		if ( item.type=="ammo" || (item.specs[0] && ( item.specs[0].type=="use" || item.specs[0].type=="cumul") ) || !self.hasItem(item.id) ) {
 	    		displayMessage(self.name+" ("+self.id+") get item "+item.name,"#FFD700");
-	    		if (item.weight+self.weight<=self.weightMax || item.name=="backpack" && !self.hasItemByName("backpack")) {
+	    		if (item.weight+self.weight<=self.weightMax || item.name=="backpack" && !self.hasItemByName("backpack") || item.name=="small backpack" && !self.hasItemByName("backpack") && !self.hasItemByName("small backpack")) {
 		    		if (item.type=="ammo") {
 		    			if (self.hasItem(item.id)) {
     						var ammo = $.grep(self.inventory, function(e){ return e.id == item.id; })[0];
