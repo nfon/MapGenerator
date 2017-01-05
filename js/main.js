@@ -630,7 +630,7 @@ var Map = function (mapL, mapH, heightMin, heightMax, summitNb, lakeNb, riverNb,
 			 {x:3,y:14,color:0},{x:4,y:14,color:0}];
 		    var opacity = 255;
 
-		    for (s in ships)
+		    for (var s in ships)
 		    {
 		    	var ship = ships[s];
     	    	for (var j=0;j<ship_model.length;j++) {
@@ -1644,7 +1644,9 @@ var Ship = function(id,name) {
 	}
 
 	this.move = function() {
-		self.updateDestination();
+		if (!self.dropped)
+			self.updateDestination();
+
 		switch(self.direction) {
 			case 0 : self.coordinates.x=self.coordinates.x-1; self.coordinates.y=self.coordinates.y-1; break;
 			case 1 : self.coordinates.y=self.coordinates.y-1; break;
@@ -1909,7 +1911,6 @@ var Game = function() {
 		drawStats();
 	}
 
-//data: [opp1.vision*100, opp1.attack, opp1.range, opp1.foodMax, opp1.waterMax, opp1.weightMax, opp1.health, opp1.gathering],
 	this.train = function() {
 		var opp = self.opponents.opponents[0];
 		var availablePoints = 100;
@@ -1959,6 +1960,7 @@ var Game = function() {
 	}
 
 	this.train0 = function() {
+		self.opponents.opponents[0].healthMax = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[0].health = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[0].attack = parseInt($("#modal").find("input[name=attack]").val(),10);
 		self.opponents.opponents[0].vision = Math.round(parseInt($("#modal").find("input[name=vision]").val(),10)/100);
@@ -2016,6 +2018,7 @@ var Game = function() {
 	}
 
 	this.train1 = function() {
+		self.opponents.opponents[1].healthMax = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[1].health = parseInt($("#modal").find("input[name=health]").val(),10);
 		self.opponents.opponents[1].attack =  parseInt($("#modal").find("input[name=attack]").val(),10);
 		self.opponents.opponents[1].vision =  Math.round(parseInt($("#modal").find("input[name=vision]").val(),10)/100);
