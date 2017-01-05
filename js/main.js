@@ -1894,14 +1894,16 @@ var Game = function() {
 	this.gameSpeed = 1;
 	this.gameOn;
 	this.debugMode = false;
+	this.skipModal = true;
 	this.sounds;
 	this.ui;
 	var self = this;
 
 	this.welcome = function() {
-		//game.start();
-
-		modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
+		if (self.skipModal)
+			game.start();
+		else
+			modal(false,"Welcome!","<p>Before your recruits arrived can you recall me your name?</p><form><input name='name' placeholder='Type here...' value='Haymitch'></form>","","And rememeber it this time!",null,game.saveName);
 	}
 
 	this.saveName = function() {
@@ -2133,6 +2135,8 @@ var Game = function() {
 			var fogMode = $("input[name=fogMode]").prop("checked");
 			var fogOpponentsMode = $("input[name=fogOpponentsMode]").prop("checked");
 			self.debugMode = $("input[name=debugMode]").prop("checked");
+			self.skipModal = $("input[name=skipModal]").prop("checked");
+
 
 			self.gameOn = true;
 
