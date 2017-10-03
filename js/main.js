@@ -1409,7 +1409,9 @@ var Player = function() {
 		if (closedOpponents.length) {			
 			var attack = self.attack;
 	    	var range = self.range/100;
-	    	var damage = round(self.attack*self.accuracy*self.range/100/Math.max(1,closedOpponents[0].distance),2);
+			var damage = 0;
+			if (closedOpponents[0].distance<=2)
+				damage = round(self.attack*self.accuracy*self.range/100/Math.max(1,closedOpponents[0].distance),2);
 	    	var bestWeapon = {name:"fist"};
 	    	var bestWeaponAmmo = {id:-1, specs:{quantity:1}};
 
@@ -1435,12 +1437,14 @@ var Player = function() {
 	    			}
     			}
 			}
-			displayMessage(self.name+" ("+self.id+") used "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and caused "+damage+" on "+closedOpponents[0].player.health,"#B22222");
-			closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
-			self.useAmmo(bestWeaponAmmo.id);
-			if (closedOpponents[0].player.health==0) {
-    			game.sounds.sounds["canon"].play();
-				displayMessage(self.name+" ("+self.id+") killed "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+")","#B22222","#000000");
+			if (damage>0) {
+				displayMessage(self.name+" ("+self.id+") used "+bestWeapon.name+" on "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+") and caused "+damage+" on "+closedOpponents[0].player.health,"#B22222");
+				closedOpponents[0].player.health = Math.max(0,round( round(closedOpponents[0].player.health,2) - damage,2));
+				self.useAmmo(bestWeaponAmmo.id);
+				if (closedOpponents[0].player.health==0) {
+					game.sounds.sounds["canon"].play();
+					displayMessage(self.name+" ("+self.id+") killed "+closedOpponents[0].player.name+" ("+closedOpponents[0].player.id+")","#B22222","#000000");
+				}
 			}
 
 		}
